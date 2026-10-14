@@ -10,7 +10,7 @@ def test_neighborhood_generator_is_reproducible_and_meter_labelled():
     a = generate_dataset(steps=240, meters=10, seed=7)
     b = generate_dataset(steps=240, meters=10, seed=7)
     assert a.equals(b)
-    assert {"meter_id", "building_id", "feeder_id", "energy_kwh", "neighborhood_feeder_power_kw", "event_type", "anomaly_flag"}.issubset(a.columns)
+    assert {"meter_id", "building_id", "distance_from_transformer_m", "feeder_id", "energy_kwh", "neighborhood_feeder_power_kw", "event_type", "anomaly_flag"}.issubset(a.columns)
     assert set(a.event_type.unique()) >= {"normal", "consumption_spike", "meter_drift"}
     assert a.meter_id.nunique() == 10
 

@@ -7,7 +7,18 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-FEATURES = ["voltage_v", "current_a", "active_power_kw", "power_factor", "frequency_hz", "power_consistency_residual", "energy_step_kwh"]
+CABLE_RESISTANCE_PER_M = 0.0022
+
+FEATURES = [
+    "voltage_v",
+    "current_a",
+    "active_power_kw",
+    "power_factor",
+    "frequency_hz",
+    "power_consistency_residual",
+    "voltage_consistency_residual",
+    "energy_step_kwh",
+]
 MEASUREMENT_COLUMNS = ["voltage_v", "current_a", "active_power_kw", "power_factor", "frequency_hz", "energy_kwh"]
 
 
@@ -15,6 +26,15 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy().reset_index(drop=True)
     expected_power = out["voltage_v"] * out["current_a"] * out["power_factor"] / 1000.0
     out["power_consistency_residual"] = out["active_power_kw"] - expected_power
+
+    # Physics: Voltage drop consistency based on distance and load current
+    if "distance_from_transformer_m" in out.columns:
+        dist = out["distance_from_transformer_m"]
+    else:
+        dist = 50.0
+    expected_voltage = 230.0 - (CABLE_RESISTANCE_PER_M * dist * out["current_a"])
+    out["voltage_consistency_residual"] = out["voltage_v"] - expected_voltage
+
     out["missing_measurement"] = out[MEASUREMENT_COLUMNS].isna().any(axis=1).astype(int)
     group_col = "meter_id" if "meter_id" in out.columns else "zone_id"
     out["power_delta"] = out.groupby(group_col, sort=False)["active_power_kw"].diff().fillna(0)
@@ -87,6 +107,8 @@ class GridSentinelDetector:
                 evidence.append("power_current_voltage_inconsistency")
             if pd.notna(row["energy_consistency_residual"]) and abs(row["energy_consistency_residual"]) > 0.08:
                 evidence.append("energy_increment_power_inconsistency")
+            if pd.notna(row.get("voltage_consistency_residual")) and abs(row["voltage_consistency_residual"]) > 8.5:
+                evidence.append("voltage_drop_distance_inconsistency")
             if (abs(float(row.get("power_delta", 0) or 0)) > 1.5
                     or float(row.get("relative_power_change", 0) or 0) > 1.0
                     or float(row.get("power_vs_recent_baseline", 1.0) or 1.0) > 1.8
@@ -100,6 +122,8 @@ class GridSentinelDetector:
                 verdict, diagnosis, action = "SUSPICIOUS", "meter_data_unavailable", "request_operator_review_and_check_communications"
             elif "power_current_voltage_inconsistency" in evidence or "energy_increment_power_inconsistency" in evidence:
                 verdict, diagnosis, action = "SUSPICIOUS", "meter_measurement_inconsistency_cause_unconfirmed", "retain_sample_for_review_and_check_meter_quality"
+            elif "voltage_drop_distance_inconsistency" in evidence:
+                verdict, diagnosis, action = "SUSPICIOUS", "voltage_drop_distance_inconsistency", "inspect_line_impedance_and_meter_calibration"
             elif "possible_frozen_or_replayed_meter_readings" in evidence:
                 verdict, diagnosis, action = "SUSPICIOUS", "possible_frozen_or_replayed_readings", "request_operator_review_and_check_meter_health"
             elif "unusual_consumption_change_vs_recent_baseline" in evidence:

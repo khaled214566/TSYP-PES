@@ -25,6 +25,17 @@ MEASUREMENT_COLUMNS = [
 ]
 
 
+BUILDING_DISTANCES_M = {
+    1: 50.0,
+    2: 120.0,
+    3: 220.0,
+    4: 350.0,
+    5: 480.0,
+    6: 600.0,
+}
+CABLE_RESISTANCE_PER_M = 0.0022  # Ohm/m loop resistance (phase + neutral)
+
+
 def _make_baseline(steps: int, meters: int, seed: int) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     start = pd.Timestamp("2026-01-01T00:00:00Z")
@@ -37,6 +48,7 @@ def _make_baseline(steps: int, meters: int, seed: int) -> pd.DataFrame:
         meter_id = f"meter_{m + 1:03d}"
         building_num = m // 5 + 1
         feeder_num = m // 10 + 1
+        distance_m = BUILDING_DISTANCES_M.get(building_num, 50.0 + (building_num - 1) * 110.0)
         household_type = ["small_flat", "family_home", "high_usage_home", "small_flat", "family_home"][m % 5]
         base_kw = {"small_flat": 0.38, "family_home": 0.72, "high_usage_home": 1.05}[household_type]
         morning_evening = 0.35 + 0.55 * np.maximum(0, np.sin(daily_phase - 0.7))
@@ -44,9 +56,15 @@ def _make_baseline(steps: int, meters: int, seed: int) -> pd.DataFrame:
         power = np.clip(base_kw * (0.55 + morning_evening) + random_load, 0.08, 4.5)
         power += 0.06 * np.sin(2 * np.pi * t / max(30, min(180, steps)) + m * 0.17)
         power = np.clip(power, 0.05, 5.0)
-        voltage = 230 + 1.8 * np.sin(2 * np.pi * t / max(120, min(600, steps)) + m * 0.13) + rng.normal(0, 0.8, steps)
+
+        # Physics: Substation bus voltage modulated by distance and dynamic load current
+        v_substation = 230 + 1.8 * np.sin(2 * np.pi * t / max(120, min(600, steps)) + m * 0.13) + rng.normal(0, 0.8, steps)
         pf = np.clip(0.96 + rng.normal(0, 0.012, steps), 0.88, 0.995)
+        i_approx = (power * 1000.0) / (230.0 * pf)
+        delta_v = CABLE_RESISTANCE_PER_M * distance_m * i_approx
+        voltage = np.clip(v_substation - delta_v, 195.0, 253.0)
         current = power * 1000 / (voltage * pf)
+
         frequency = 50 + rng.normal(0, 0.015, steps)
         energy = np.cumsum(power / 60.0)
         frames.append(pd.DataFrame({
@@ -54,6 +72,7 @@ def _make_baseline(steps: int, meters: int, seed: int) -> pd.DataFrame:
             "meter_id": meter_id,
             "household_type": household_type,
             "building_id": f"building_{building_num:02d}",
+            "distance_from_transformer_m": distance_m,
             "feeder_id": f"feeder_{feeder_num:02d}",
             "voltage_v": voltage,
             "current_a": current,
@@ -122,7 +141,17 @@ def generate_dataset(
             original_power = df.loc[idx, "active_power_kw"].to_numpy(copy=True)
             spiked_power = original_power * rng.uniform(2.0, 3.2)
             df.loc[idx, "active_power_kw"] = spiked_power
-            df.loc[idx, "current_a"] = spiked_power * 1000 / (df.loc[idx, "voltage_v"] * df.loc[idx, "power_factor"])
+
+            # Dynamic physics: Increased load current through cable impedance pulls voltage down further
+            dist_m = df.loc[idx, "distance_from_transformer_m"].to_numpy()
+            pf_val = df.loc[idx, "power_factor"].to_numpy()
+            v_curr = df.loc[idx, "voltage_v"].to_numpy()
+            i_curr = df.loc[idx, "current_a"].to_numpy()
+            v_sub = v_curr + (CABLE_RESISTANCE_PER_M * dist_m * i_curr)
+            i_approx_spike = (spiked_power * 1000.0) / (230.0 * pf_val)
+            new_v = np.clip(v_sub - (CABLE_RESISTANCE_PER_M * dist_m * i_approx_spike), 190.0, 253.0)
+            df.loc[idx, "voltage_v"] = new_v
+            df.loc[idx, "current_a"] = spiked_power * 1000.0 / (new_v * pf_val)
             # Treat this scenario as a genuine load change: cumulative energy
             # should increase by the additional consumed energy.
             delta_kwh = np.cumsum((spiked_power - original_power) / 60.0)
