@@ -1,0 +1,56 @@
+{
+  "node_id": "ENERGYMIND_NODE_TUNISIA_DISTRICT_01",
+  "protocol_version": "Noosphere-v1.0-Federated",
+  "generated_timestamp": "2026-10-14T18:00:00Z",
+  "node_district": "STEG_Residential_Microgrid",
+  "privacy_compliance": "Decentralized / GDPR & STEG Smart Grid Data Protection Standard",
+  "shared_pattern_count": 4,
+  "patterns": [
+    {
+      "pattern_id": "PAT_GRID_DISTURBANCE_01",
+      "type": "feeder_voltage_sag",
+      "category": "real_event",
+      "consensus_signature": {
+        "feeder_consensus_threshold": 0.7,
+        "nominal_sag_delta_v": -18.0,
+        "line_impedance_physics_valid": true
+      },
+      "privacy_guarantee": "Zero customer telemetry exposed; only feeder-level consensus ratios shared.",
+      "recommended_action": "dispatch_distribution_voltage_regulation"
+    },
+    {
+      "pattern_id": "PAT_STEALTH_THEFT_02",
+      "type": "bias_injection",
+      "category": "falsification",
+      "consensus_signature": {
+        "power_current_proportional_scaling": 0.65,
+        "rolling_energy_residual_threshold_kwh": 0.0018,
+        "voltage_stability": "nominal_230V"
+      },
+      "privacy_guarantee": "Zero customer telemetry exposed; only dimensionless residual fingerprints shared.",
+      "recommended_action": "dispatch_field_tamper_inspection_and_quarantine"
+    },
+    {
+      "pattern_id": "PAT_SEQUENCE_REPLAY_03",
+      "type": "replay_like",
+      "category": "falsification",
+      "consensus_signature": {
+        "temporal_vector_entropy_match": 4,
+        "buffer_lag_min": 20
+      },
+      "privacy_guarantee": "Zero raw waveforms exposed; sequence hash collision signature only.",
+      "recommended_action": "request_operator_review_and_check_meter_health"
+    },
+    {
+      "pattern_id": "PAT_INDUCTIVE_FAULT_04",
+      "type": "equipment_fault",
+      "category": "real_event",
+      "consensus_signature": {
+        "pf_collapse_threshold": 0.65,
+        "current_surge_multiplier": 1.8
+      },
+      "privacy_guarantee": "Aggregated impedance profile shared across distribution districts.",
+      "recommended_action": "quarantine_circuit_and_inspect_inductive_load"
+    }
+  ]
+}
