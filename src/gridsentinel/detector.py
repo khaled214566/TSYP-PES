@@ -99,8 +99,12 @@ class GridSentinelDetector:
             evidence: list[str] = []
             if int(row["missing_measurement"]):
                 evidence.append("missing_or_unavailable_meter_reading")
-            if pd.notna(row["voltage_v"]) and not (207 <= row["voltage_v"] <= 253):
+            if pd.notna(row["voltage_v"]) and (row["voltage_v"] <= 0.0 or row["voltage_v"] > 270.0):
+                evidence.append("telemetry_dropout_or_extreme_voltage")
+            elif pd.notna(row["voltage_v"]) and not (207 <= row["voltage_v"] <= 253):
                 evidence.append("voltage_outside_illustrative_range")
+            if pd.notna(row["power_factor"]) and not (0.70 <= row["power_factor"] <= 1.0):
+                evidence.append("power_factor_physical_boundary_violation")
             if pd.notna(row["frequency_hz"]) and not (49.5 <= row["frequency_hz"] <= 50.5):
                 evidence.append("frequency_outside_illustrative_range")
             if pd.notna(row["power_consistency_residual"]) and abs(row["power_consistency_residual"]) > 0.25:
@@ -118,12 +122,14 @@ class GridSentinelDetector:
                 evidence.append("possible_frozen_or_replayed_meter_readings")
             ml_anomaly = normality[i] < self._score_threshold
             flagged = bool(ml_anomaly or evidence)
-            if "missing_or_unavailable_meter_reading" in evidence:
+            if "telemetry_dropout_or_extreme_voltage" in evidence or "power_factor_physical_boundary_violation" in evidence:
+                verdict, diagnosis, action = "SUSPICIOUS", "telemetry_corruption_or_dropout", "quarantine_sample_and_check_hardware"
+            elif "missing_or_unavailable_meter_reading" in evidence:
                 verdict, diagnosis, action = "SUSPICIOUS", "meter_data_unavailable", "request_operator_review_and_check_communications"
             elif "power_current_voltage_inconsistency" in evidence or "energy_increment_power_inconsistency" in evidence:
                 verdict, diagnosis, action = "SUSPICIOUS", "meter_measurement_inconsistency_cause_unconfirmed", "retain_sample_for_review_and_check_meter_quality"
-            elif "voltage_drop_distance_inconsistency" in evidence:
-                verdict, diagnosis, action = "SUSPICIOUS", "voltage_drop_distance_inconsistency", "inspect_line_impedance_and_meter_calibration"
+            elif "voltage_drop_distance_inconsistency" in evidence or "voltage_outside_illustrative_range" in evidence:
+                verdict, diagnosis, action = "SUSPICIOUS", "voltage_drop_or_grid_sag_detected", "inspect_line_impedance_or_feeder_event"
             elif "possible_frozen_or_replayed_meter_readings" in evidence:
                 verdict, diagnosis, action = "SUSPICIOUS", "possible_frozen_or_replayed_readings", "request_operator_review_and_check_meter_health"
             elif "unusual_consumption_change_vs_recent_baseline" in evidence:

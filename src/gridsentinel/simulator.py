@@ -19,6 +19,11 @@ METER_SCENARIOS = [
     "frozen_meter",
     "missing_data",
     "energy_power_mismatch",
+    "random_corruption",
+    "dropout",
+    "bias_injection",
+    "equipment_fault",
+    "grid_event",
 ]
 MEASUREMENT_COLUMNS = [
     "voltage_v", "current_a", "active_power_kw", "power_factor", "frequency_hz", "energy_kwh"
@@ -193,6 +198,48 @@ def generate_dataset(
         elif scenario == "energy_power_mismatch":
             df.loc[idx, "energy_kwh"] += np.linspace(0.8, 3.8, len(idx))
             df.loc[idx, "affected_channel"] = "energy_kwh"
+        elif scenario == "random_corruption":
+            corruption_type = rng.choice(["extreme_voltage", "impossible_pf", "negative_voltage"])
+            if corruption_type == "extreme_voltage":
+                df.loc[idx, "voltage_v"] = 999.0
+                df.loc[idx, "affected_channel"] = "voltage_v"
+            elif corruption_type == "impossible_pf":
+                df.loc[idx, "power_factor"] = 1.85
+                df.loc[idx, "affected_channel"] = "power_factor"
+            else:
+                df.loc[idx, "voltage_v"] = -15.0
+                df.loc[idx, "affected_channel"] = "voltage_v"
+        elif scenario == "dropout":
+            # Complete communication/sensor signal collapse
+            df.loc[idx, "voltage_v"] = 0.0
+            df.loc[idx, "current_a"] = 0.0
+            df.loc[idx, "active_power_kw"] = 0.0
+            df.loc[idx, "affected_channel"] = "voltage_v,current_a,active_power_kw"
+        elif scenario == "bias_injection":
+            # Deliberate 35% scaling down of power/current for billing evasion / theft
+            df.loc[idx, "active_power_kw"] *= 0.65
+            df.loc[idx, "current_a"] *= 0.65
+            df.loc[idx, "affected_channel"] = "active_power_kw,current_a"
+        elif scenario == "equipment_fault":
+            # Inductive breakdown: 2.2x current surge and severe power factor drop
+            df.loc[idx, "current_a"] *= 2.2
+            df.loc[idx, "power_factor"] = np.clip(df.loc[idx, "power_factor"] * 0.58, 0.45, 0.62)
+            df.loc[idx, "affected_channel"] = "current_a,power_factor"
+        elif scenario == "grid_event":
+            # Feeder-wide grid disturbance: simultaneous 18V sag across all meters on the feeder
+            f_id = df.loc[idx[0], "feeder_id"]
+            event_times = df.loc[idx, "timestamp"].unique()
+            feeder_mask = df["feeder_id"].eq(f_id) & df["timestamp"].isin(event_times)
+            feeder_idx = df.index[feeder_mask]
+            df.loc[feeder_idx, "event_type"] = "grid_event"
+            df.loc[feeder_idx, "anomaly_flag"] = 1
+            df.loc[feeder_idx, "event_id"] = f"{f_id}_grid_event_{start}"
+            df.loc[feeder_idx, "voltage_v"] = np.maximum(185.0, df.loc[feeder_idx, "voltage_v"] - 18.0)
+            df.loc[feeder_idx, "current_a"] = (
+                df.loc[feeder_idx, "active_power_kw"] * 1000.0 /
+                (df.loc[feeder_idx, "voltage_v"] * df.loc[feeder_idx, "power_factor"])
+            )
+            df.loc[feeder_idx, "affected_channel"] = "voltage_v,current_a"
 
     # Recompute aggregate feeder measurements per timestamp. These are
     # simulated totals, not independent physical feeder-meter measurements.
@@ -201,7 +248,8 @@ def generate_dataset(
         active_meter_count=("meter_id", "nunique"),
     )
     df = df.merge(agg, on=["timestamp", "feeder_id"], how="left")
-    return df.sort_values(["meter_id", "timestamp"]).reset_index(drop=True)
+    # Chronological sort (timestamp first, then meter_id) for realistic line-by-line streaming
+    return df.sort_values(["timestamp", "meter_id"]).reset_index(drop=True)
 
 
 def save_dataset(df: pd.DataFrame, path: str) -> None:
