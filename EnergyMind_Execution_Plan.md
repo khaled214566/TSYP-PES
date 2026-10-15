@@ -1,207 +1,191 @@
-# EnergyMind Tunisia — Execution Plan
+# EnergyMind Tunisia — Master Execution Plan & Architecture
 
-> **Module-ordered build plan** for the AI Trust Layer for Energy Systems.
-> Each module is listed in strict dependency order — a module can only begin once all its listed prerequisites are complete.
+> **Comprehensive Module-Ordered Build Plan** for the AI Trust Layer, Multi-Agent Remediation Swarm, and Federated Noosphere.
+> Each module is listed in strict dependency order — a module can only begin once all its prerequisites are satisfied.
 
 ---
 
-## Dependency Map
+## Architecture & Dependency Map
 
 ```mermaid
 flowchart TD
-    P1["✅ Phase 1: Dataset & Simulation (DONE)"]
-    M1["Module 1: Statistical Outlier Engine"]
-    M2["Module 2: Unsupervised Outlier Engine"]
-    M3["Module 3: Bias & Sensor Health Engine"]
-    M4["Module 4: Data Integrity / Falsification Engine"]
-    M5["Module 5: Feature Engineering Pipeline"]
-    M6["Module 6: Evidence Fusion & Event Classifier"]
-    M7["Module 7: Confidence Score Calculator"]
-    M8["Module 8: Explainability Engine (SHAP + Rules)"]
-    M9["Module 9: Governance & Escalation Engine"]
-    M10["Module 10: Audit Trail & Database"]
-    M11["Module 11: FastAPI Backend & WebSocket Streaming"]
-    M12["Module 12: React Frontend Dashboard"]
-    M13["Module 13: Demo Scenario Validation Suite"]
-    M14["Module 14: Containerization & End-to-End Integration"]
-    M15["Module 15: Noosphere — Multi-Node Federated Learning"]
+    P1["✅ Phase 1: GridSentinel Simulator & 13 Scenarios (DONE)"]
+    M1["Module 1: Statistical & Drift Engine"]
+    M2["Module 2: Unsupervised Outlier Engine (Isolation Forest)"]
+    M3["Module 3: Line Impedance & Sensor Health Engine"]
+    M4["Module 4: Data Integrity & Sequence Replay Engine"]
+    M5["Module 5: Spatial Consensus & Cohort Feature Pipeline"]
+    M6["Module 6: Multi-Class Event Classifier (XGBoost / LightGBM)"]
+    M7["Module 7: Multi-Evidence Composite Confidence Engine"]
+    M8["Module 8: Dual Explainability Engine (SHAP + Rule Templates)"]
+    M9["Module 9: 3-Tier Governance & Escalation Router"]
+    M10["Module 10: Immutable Audit Trail & Database (PostgreSQL / SQLite)"]
+    
+    subgraph MultiAgentLayer["🆕 Phase 6: Multi-Agent RAG & Remediation Swarm"]
+        direction TB
+        AG1["Agent 1: Diagnostic & Root-Cause Agent"]
+        AG2["Agent 2: RAG Knowledge Retrieval Agent (ChromaDB/FAISS)"]
+        AG3["Agent 3: Remediation & Action Planning Agent"]
+        AG4["Agent 4: Safety & Policy Auditor Agent"]
+        AG5["Agent 5: Feedback & Continuous Learning Agent"]
+        
+        AG1 --> AG2 --> AG3 --> AG4
+        AG4 -.->|Operator Feedback Loop| AG5
+    end
 
-    P1 --> M5
-    P1 --> M1
-    P1 --> M2
-    P1 --> M3
-    P1 --> M4
-    M5 --> M6
-    M1 --> M6
-    M2 --> M6
-    M3 --> M6
-    M4 --> M6
-    M6 --> M7
-    M6 --> M8
-    M7 --> M9
-    M8 --> M9
+    M11["Module 12: FastAPI Streaming Backend & WebSocket Server"]
+    M12["Module 13: React Operator Command Center Dashboard"]
+    M13["Module 14: Demo Scenarios A/B/C Validation Suite"]
+    M15["Module 15: Docker Containerization & E2E Integration"]
+    M16["Module 16: Noosphere Federated Pattern Registry & Multi-Node Network"]
+
+    P1 --> M1 & M2 & M3 & M4 & M5
+    M1 & M2 & M3 & M4 & M5 --> M6
+    M6 --> M7 & M8
+    M7 & M8 --> M9
     M9 --> M10
-    M10 --> M11
-    M11 --> M12
-    M11 --> M13
-    M12 --> M14
-    M13 --> M14
-    M14 --> M15
+    M10 --> AG1
+    AG4 --> M11
+    AG5 --> M16
+    M11 --> M12 & M13
+    M12 & M13 --> M15
+    M15 --> M16
 ```
 
 ---
 
-## ✅ Phase 1: Dataset & Simulation — COMPLETE
+## ✅ Phase 1: GridSentinel Simulator & Telemetry Engine — COMPLETE
 
-> Already built and verified in `simulation/` and `data/`.
+> Implemented, verified, and committed in `src/gridsentinel/simulator.py` and `data/generated/`.
 
-| Artifact | Location |
-|----------|----------|
-| Baseline Generator | `simulation/generators/baseline_generator.py` |
-| Anomaly Injector (10 types) | `simulation/generators/anomaly_injector.py` |
-| Demo Scenarios (A, B, C) | `simulation/scenarios/demo_scenarios.py` |
-| Dataset Builder Pipeline | `simulation/dataset_builder.py` |
-| Config | `simulation/config/simulation_config.yaml` |
-| Clean Baseline (345,600 rows) | `data/raw/baseline_30d.csv` |
-| Full Dataset with Anomalies | `data/generated/full_dataset.csv` |
-| Ground Truth Labels (134 events) | `data/generated/labels.csv` |
-| Engineered Features | `data/processed/features.csv` |
-| Train/Val/Test Splits | `data/train/`, `data/val/`, `data/test/` |
+| Artifact / Component | Location | Description |
+|---|---|---|
+| **Simulation Core** | `src/gridsentinel/simulator.py` | Multi-day 1-minute smart meter generator for 30 households |
+| **Physics Model** | `BUILDING_DISTANCES_M` & `CABLE_RESISTANCE_PER_M` | Dynamic radial feeder voltage drop ($50\text{m} \to 600\text{m}$, $\Delta V = R \cdot d \cdot I$) |
+| **13-Scenario Problem Engine** | `METER_SCENARIOS` in `simulator.py` | Complete injection coverage across all 4 challenge categories |
+| **Ground-Truth Event Registry** | `data/generated/labels.csv` | 13+ timestamped episodes with parameter JSON and severity |
+| **Baseline Normal Training Data** | `data/generated/normal_training.csv` | 43,200 rows of clean baseline (multi-day diurnal + weekend profiles) |
+| **Scored Demonstration Dataset** | `data/generated/scored_demo.csv` | 43,200 rows with 27 telemetry, feature, verdict, and explanation columns |
+| **Validation Test Suite** | `tests/test_prototype.py` | 4 test suites verifying determinism, columns, Scenario A, and Scenario C |
 
-**Outputs available for downstream modules:**
-- `X_train.csv`, `y_train.csv` — Training features and labels
-- `X_val.csv`, `y_val.csv` — Validation features and labels
-- `X_test.csv`, `y_test.csv` — Test features and labels
-- `features.csv` — Full engineered feature matrix
-- `labels.csv` — Complete anomaly ground truth
+### The 13 Injected Anomaly Scenarios Catalogued
+
+| # | Scenario Name | Category | Real-World Mechanism |
+|---|---|---|---|
+| 1 | `consumption_spike` | Demand Event | $2.0\times\text{–}3.2\times$ power surge; dynamic voltage sag coupled to wire resistance |
+| 2 | `meter_drift` | Data Quality | Gradual progressive linear drift ($+0.6\text{ to }+1.2\text{ kW}$) in power channel |
+| 3 | `constant_bias` | Data Quality | Static persistent active power offset ($+0.8\text{ to }+1.5\text{ kW}$) |
+| 4 | `false_data_injection` | Falsification | Active power scaled by $0.45\times$ or $1.85\times$ while current remains unchanged |
+| 5 | `replay_like` | Falsification | Temporal replay of 4-point historical measurement vector from earlier quiet hours |
+| 6 | `frozen_meter` | Data Integrity | Sensor memory crash: all channels hold static floating-point value ($\sigma^2 = 0$) |
+| 7 | `missing_data` | Comms Loss | Telemetry packet loss: active power values replaced with `NaN` |
+| 8 | `energy_power_mismatch` | Data Quality | Accumulation register inconsistency: $P \times \Delta t \neq \Delta E_{\text{kwh}}$ |
+| 9 | `random_corruption` | Data Integrity | Out-of-bounds corruption: $999.0\text{V}$, $-15.0\text{V}$, or impossible $PF = 1.85$ |
+| 10 | `dropout` | Comms Loss | Complete telemetry collapse: $V = 0.0$, $I = 0.0$, $P = 0.0$ |
+| 11 | `bias_injection` | Electricity Theft | Proportional stealth theft: $35\%$ scaling down of both power and current ($0.65\times$) |
+| 12 | `equipment_fault` | Real Event | Inductive equipment breakdown: $2.2\times$ current surge with power factor drop to $0.55$ |
+| 13 | `grid_event` | Real Event | Feeder-wide grid disturbance: simultaneous $18\text{V}$ sag across **all 10 meters** on feeder |
 
 ---
 
-## Phase 2: Detection Engines (Modules 1–5)
+## Phase 2: Feature Engineering & Detection Engines (Modules 1–5)
 
-> These modules can be developed **in parallel** — they all depend only on Phase 1 outputs.
+> Builds upon the baseline logic established in `src/gridsentinel/detector.py`. These 5 modules can be developed in parallel.
 
 ---
 
-### Module 1: Statistical Outlier Engine
+### Module 1: Statistical Outlier & Drift Engine
 
-**Directory:** `ml/detectors/statistical/`
+**Directory:** `src/gridsentinel/detectors/statistical/`
 
 | | Details |
 |---|---|
-| **Purpose** | Detect sudden spikes, gradual shifts, and sustained deviations using classical statistical methods |
+| **Purpose** | Detect transient impulses, accumulated sensor bias, and progressive calibration drift using classical statistical tracking |
 | **Tech Stack** | Python, NumPy, SciPy, pandas |
-| **Algorithms** | Rolling Z-score, EWMA (Exponentially Weighted Moving Average), CUSUM, Page-Hinkley change detection |
+| **Algorithms** | Rolling Z-score, Exponentially Weighted Moving Average (EWMA), CUSUM, Page-Hinkley test |
 | **Prerequisites** | Phase 1 complete |
 
 | Input | Output |
-|-------|--------|
-| `data/processed/features.csv` — rolling means, rolling stds, residuals | Per-row anomaly scores: `z_score_voltage`, `z_score_power`, `ewma_alert`, `cusum_alert` |
-| `data/raw/baseline_30d.csv` — clean baseline for calibrating thresholds | Statistical alert flags (binary) per timestamp per sensor |
-| Raw telemetry columns: `voltage`, `current`, `active_power`, `power_factor` | Drift detection signals (Page-Hinkley statistic values) |
-
-**Key deliverables:**
-- `StatisticalDetector` class with `.fit()` (baseline calibration) and `.detect(row)` methods
-- Configurable threshold parameters loaded from YAML
-- Outputs a `statistical_scores.csv` for offline evaluation
+|---|---|
+| `data/generated/normal_training.csv` (calibrating normal statistical limits) | Per-row scores: `z_score_voltage`, `z_score_power`, `ewma_drift_score` |
+| Telemetry columns: `voltage_v`, `current_a`, `active_power_kw` | Binary alert flags: `statistical_spike_alert`, `sustained_drift_flag` |
+| Rolling residuals from Module 5 | Drift rate parameter ($\Delta V / \text{min}$ or $\Delta P / \text{min}$) |
 
 ---
 
-### Module 2: Unsupervised Outlier Engine
+### Module 2: Unsupervised Outlier Engine (Isolation Forest)
 
-**Directory:** `ml/detectors/unsupervised/`
+**Directory:** `src/gridsentinel/detectors/unsupervised/`
 
 | | Details |
 |---|---|
-| **Purpose** | Identify anomalous patterns without labeled data using density/isolation-based methods |
-| **Tech Stack** | scikit-learn (IsolationForest, OneClassSVM), joblib for model persistence |
-| **Algorithms** | Isolation Forest (primary), One-Class SVM (secondary) |
+| **Purpose** | Detect multivariate, non-linear anomalies without relying on ground-truth anomaly labels |
+| **Tech Stack** | scikit-learn (`IsolationForest`), `StandardScaler`, `SimpleImputer`, `joblib` |
+| **Model Config** | 160 estimators, contamination $\approx 0.03$, trained on clean normal multi-day baselines |
 | **Prerequisites** | Phase 1 complete |
 
 | Input | Output |
-|-------|--------|
-| `data/train/X_train.csv` — normal + anomalous features for training | Anomaly score (float) per sample: `isolation_score`, `ocsvm_score` |
-| `data/raw/baseline_30d.csv` — clean-only data for training "normal" profile | Binary anomaly label per sample: `is_outlier` |
-| Feature columns: rolling stats, residuals, temporal features | Serialized trained models: `isolation_forest.joblib`, `ocsvm.joblib` |
-
-**Key deliverables:**
-- `UnsupervisedDetector` class with `.fit()` on clean baseline and `.predict(row)` methods
-- Contamination parameter tuning on validation set
-- Outputs `unsupervised_scores.csv` for offline evaluation
+|---|---|
+| `normal_training.csv` (features: residuals, ratios, raw electrical channels) | Continuous decision function score: `normality_score` |
+| Streaming/batch feature vectors from Module 5 | Normalized anomaly score: `anomaly_score` $\in [0.0, 1.0]$ |
+| Contamination quantile threshold | Binary flag: `ml_anomaly` (True/False) |
+| Serialized artifact: `models/isolation_forest.joblib` | Outlier tree depth distribution for explainability |
 
 ---
 
-### Module 3: Bias & Sensor Health Engine
+### Module 3: Line Impedance & Sensor Health Engine
 
-**Directory:** `ml/detectors/sensor_health/`
+**Directory:** `src/gridsentinel/detectors/sensor_health/`
 
 | | Details |
 |---|---|
-| **Purpose** | Track persistent sensor calibration errors, slow degradation, and peer-compared health scores |
+| **Purpose** | Track physical wire drop consistency and per-sensor degradation/health indices (0–100) |
 | **Tech Stack** | Python, NumPy, pandas |
-| **Algorithms** | Residual analysis (actual vs. historical baseline mean), peer sensor deviation index, exponential health decay scoring |
+| **Physics Formula** | Expected line drop: $V_{\text{expected}} = 230.0 - (R_{\text{cable}} \times \text{distance} \times I)$ |
 | **Prerequisites** | Phase 1 complete |
 
 | Input | Output |
-|-------|--------|
-| `data/processed/features.csv` — `voltage_residual`, `power_residual`, `current_residual` | Per-sensor health score (0–100 scale): `sensor_health_index` |
-| `data/raw/baseline_30d.csv` — historical baselines per sensor | Bias detection flags: `persistent_bias_detected`, `bias_magnitude_V` |
-| Multi-sensor telemetry for cross-sensor comparison | Neighbor deviation index: `neighbor_deviation` per sensor per timestamp |
-
-**Key deliverables:**
-- `SensorHealthTracker` class maintaining rolling per-sensor health state
-- Configurable bias detection thresholds (magnitude and duration)
-- Cross-sensor consensus calculator (how many peers agree with this sensor's reading)
+|---|---|
+| `distance_from_transformer_m` & `current_a` | Feature: `voltage_consistency_residual` |
+| `voltage_v` | Per-sensor rolling Health Score (0–100): `sensor_health_index` |
+| Historical baseline mean per meter | Metric: `impedance_deviation_index` (flags localized wire/connector faults) |
 
 ---
 
-### Module 4: Data Integrity / Falsification Engine
+### Module 4: Data Integrity & Sequence Replay Engine
 
-**Directory:** `ml/detectors/integrity/`
+**Directory:** `src/gridsentinel/detectors/integrity/`
 
 | | Details |
 |---|---|
-| **Purpose** | Detect frozen/stuck values, out-of-bounds corruptions, and replay attacks |
-| **Tech Stack** | Python, NumPy, pandas |
-| **Algorithms** | Constant-value window detection (zero variance check), out-of-bounds physics validation (V: 180–270V, I: ≥0, PF: 0–1), time-lagged autocorrelation for replay detection |
+| **Purpose** | Catch frozen telemetry, out-of-bounds corruptions, and multi-channel replay attacks |
+| **Tech Stack** | Python, NumPy, sliding-window hashing / autocorrelation |
+| **Algorithms** | Zero-variance run length, physical boundary assertions, 4-point electrical vector entropy signature matching |
 | **Prerequisites** | Phase 1 complete |
 
 | Input | Output |
-|-------|--------|
-| Raw telemetry: `voltage`, `current`, `active_power`, `power_factor` | Integrity alert flags: `is_frozen`, `is_corrupted`, `is_replay` |
-| `data/raw/baseline_30d.csv` — historical patterns for replay comparison | Replay confidence score (autocorrelation with lagged windows) |
-| Physics bounds from `simulation_config.yaml` | Out-of-bounds violation details: `oob_field`, `oob_value` |
-
-**Key deliverables:**
-- `IntegrityDetector` class with real-time `.check(row)` method
-- Replay detection using sliding-window autocorrelation against past 1–4 hour history
-- Configurable freeze duration threshold and physics bounds
+|---|---|
+| Measurement vector: `[V, I, P, PF, Hz, kWh]` | Binary flags: `is_frozen`, `is_corrupted`, `is_replay` |
+| Historical rolling buffer (sliding window $> 20$ min) | Replay collision flag: `replay_sequence_flag` |
+| Physics limits ($V \in [180, 270]$, $PF \in [0.70, 1.0]$, $I \ge 0$) | Out-of-bounds metadata: `oob_channel`, `oob_value` |
 
 ---
 
-### Module 5: Feature Engineering Pipeline
+### Module 5: Spatial Consensus & Cohort Feature Pipeline
 
-**Directory:** `ml/features/`
+**Directory:** `src/gridsentinel/features/`
 
 | | Details |
 |---|---|
-| **Purpose** | Transform raw telemetry into ML-ready features; acts as the canonical feature extraction step for the classifier |
-| **Tech Stack** | Python, pandas, NumPy |
-| **Methods** | 15-min rolling means/stds, residual computation, temporal encoding (hour, day-of-week, is_weekend), cross-sensor aggregation |
+| **Purpose** | Refactor and standardize spatial feeder consensus, peer cohort ratios, and physics residuals into a reusable pipeline class |
+| **Tech Stack** | Python, pandas, NumPy, Pydantic |
+| **Key Features** | `feeder_sag_ratio`, `feeder_median_voltage`, `cohort_power_ratio`, `rolling_power_residual`, `rolling_energy_residual` |
 | **Prerequisites** | Phase 1 complete |
 
 | Input | Output |
-|-------|--------|
-| Raw telemetry CSV (live stream or batch) | Engineered feature vector per timestamp per sensor |
-| `simulation_config.yaml` — rolling window sizes, sensor list | Feature columns: `voltage_rolling_mean_15`, `voltage_rolling_std_15`, `power_rolling_mean_15`, `voltage_residual`, `power_residual`, `current_residual`, `hour`, `day_of_week`, `is_weekend`, `neighbor_deviation_index` |
-
-**Key deliverables:**
-- `FeatureExtractor` class with `.transform(raw_df)` method
-- Identical logic to what `dataset_builder.py` already uses (refactored into reusable module)
-- Supports both batch (DataFrame) and streaming (single-row) modes
-
-> [!NOTE]
-> While `dataset_builder.py` already performs feature engineering, this module **refactors** it into a standalone, reusable pipeline class that the backend can call at inference time.
+|---|---|
+| Raw streaming or batch telemetry DataFrame | Fully engineered feature matrix with spatial and cohort metrics |
+| Grouping keys: `feeder_id`, `household_type`, `building_id` | Streaming-ready single-tick transformer method `.transform_tick(buffer)` |
 
 ---
 
@@ -209,331 +193,329 @@ flowchart TD
 
 ---
 
-### Module 6: Evidence Fusion & Event Classifier
+### Module 6: Supervised Multi-Class Event Classifier
 
-**Directory:** `ml/classifier/`
+**Directory:** `src/gridsentinel/classifier/`
 
 | | Details |
 |---|---|
-| **Purpose** | Combine outputs from all 4 detection engines + engineered features into a single multi-class event classification |
-| **Tech Stack** | XGBoost (primary), LightGBM / Random Forest (comparison baselines), scikit-learn |
-| **Classification Target** | Multi-class: `NORMAL`, `GENUINE_GRID_EVENT`, `DATA_QUALITY_SENSOR_BIAS`, `DATA_QUALITY_SENSOR_DRIFT`, `DATA_QUALITY_SPIKE`, `DATA_QUALITY_DROPOUT`, `DATA_INTEGRITY_FROZEN`, `DATA_INTEGRITY_RANDOM_CORRUPTION`, `FALSIFIED_REPLAY_ATTACK`, `FALSIFIED_BIAS_INJECTION`, `EQUIPMENT_FAULT` |
-| **Prerequisites** | **Modules 1, 2, 3, 4, 5** all complete |
+| **Purpose** | Fuse evidence from Modules 1–5 into an accurate multi-class event classifier capable of distinguishing grid crises from sensor faults and cyberattacks |
+| **Tech Stack** | XGBoost (primary), LightGBM, scikit-learn |
+| **Target Classes** | `NORMAL`, `GENUINE_GRID_EVENT`, `DATA_QUALITY_ISSUE`, `FALSIFICATION_ATTACK`, `EQUIPMENT_FAULT` |
+| **Prerequisites** | **Modules 1, 2, 3, 4, 5** complete |
 
 | Input | Output |
-|-------|--------|
-| Engineered features from Module 5 | Predicted event class label |
-| Statistical scores from Module 1: `z_score_voltage`, `cusum_alert`, etc. | Class probability distribution (11 classes) |
-| Unsupervised scores from Module 2: `isolation_score`, `is_outlier` | Trained model artifact: `event_classifier.joblib` |
-| Sensor health from Module 3: `sensor_health_index`, `neighbor_deviation` | Classification report on test set (precision, recall, F1) |
-| Integrity flags from Module 4: `is_frozen`, `is_replay`, `is_corrupted` | Cross-sensor agreement ratio per event |
-| `X_train.csv` / `y_train.csv` for training | |
-| `X_val.csv` / `y_val.csv` for hyperparameter tuning | |
-| `X_test.csv` / `y_test.csv` for final evaluation | |
-
-**Key deliverables:**
-- `EventClassifier` class with `.train()`, `.predict(features)`, `.predict_proba(features)` methods
-- Hyperparameter optimization (grid search or Optuna) on validation set
-- Rule-based post-processing: if all 8 sensors show correlated voltage shift → boost `GENUINE_GRID_EVENT` probability
-- Confusion matrix and per-class metrics on test set
-- Serialized model + feature importance ranking
+|---|---|
+| Engineered feature matrix (Modules 1–5) | Predicted `event_class` label |
+| Ground-truth targets from `data/generated/labels.csv` | Class probability vector (5 classes) |
+| Feeder consensus ratio (`feeder_sag_ratio`) | Feature importance ranking |
+| Training/Validation/Test split data | Serialized model: `models/event_classifier_xgb.joblib` |
 
 ---
 
-## Phase 4: Trust Layer (Modules 7–8)
+## Phase 4: Trust Layer & Explainability (Modules 7–8)
 
 ---
 
-### Module 7: Confidence Score Calculator
+### Module 7: Multi-Evidence Composite Confidence Engine
 
-**Directory:** `ml/trust/confidence/`
+**Directory:** `src/gridsentinel/trust/confidence/`
 
 | | Details |
 |---|---|
-| **Purpose** | Produce a composite, inspectable confidence score (0–100%) that is **not** just a raw model softmax — it fuses multiple evidence signals |
+| **Purpose** | Calculate an inspectable, calibrated composite confidence score ($0.0\text{–}1.0$) using multi-evidence fusion rather than an uncalibrated raw softmax |
 | **Tech Stack** | Python, NumPy |
-| **Method** | Weighted combination of: (1) model class probability, (2) anomaly magnitude, (3) detector consensus count, (4) cross-sensor agreement ratio, (5) historical sensor health index |
+| **Formula** | $C = w_1 P(\text{class}) + w_2 (\text{Consensus Ratio}) + w_3 (\text{Detector Agreement}) + w_4 (\text{Sensor Health}) + w_5 (\text{Residual Magnitude})$ |
 | **Prerequisites** | **Module 6** complete |
 
 | Input | Output |
-|-------|--------|
-| Class probability from Module 6: `predict_proba()` | `composite_confidence_score` (0.0–1.0, displayed as 0–100%) |
-| Detector consensus: how many of the 4 engines flagged this event | `confidence_breakdown` dict: individual component scores |
-| Cross-sensor agreement ratio from Module 6 | `confidence_level` enum: `HIGH` (≥95%), `MEDIUM` (70–95%), `LOW` (<70%) |
-| Sensor health index from Module 3 | |
-| Anomaly magnitude (Z-score or deviation size) from Module 1 | |
-
-**Key deliverables:**
-- `ConfidenceCalculator` class with `.compute(event_result)` method
-- Configurable component weights in YAML
-- Score decomposition for transparency (each component's contribution visible)
+|---|---|
+| Model class probability (Module 6) | `composite_confidence` score (e.g. 0.94) |
+| Feeder consensus ratio (Module 5) | `confidence_breakdown` dictionary |
+| Detection engines agreement count (Modules 1–4) | Confidence level indicator: `HIGH` ($\ge 0.95$), `MEDIUM` ($0.70\text{–}0.95$), `LOW` ($< 0.70$) |
+| Sensor Health Index (Module 3) | Score calibration metadata for audit log |
 
 ---
 
-### Module 8: Explainability Engine (SHAP + Rules)
+### Module 8: Dual Explainability Engine (SHAP + Rule Templates)
 
-**Directory:** `ml/trust/explainability/`
+**Directory:** `src/gridsentinel/trust/explainability/`
 
 | | Details |
 |---|---|
-| **Purpose** | Provide dual explainability: (1) local SHAP feature attributions and (2) rule-backed human-readable natural language justifications |
-| **Tech Stack** | SHAP (TreeExplainer for XGBoost), Jinja2 or f-string templates for rule text |
-| **Prerequisites** | **Module 6** complete (needs the trained XGBoost model) |
+| **Purpose** | Generate dual-layer explainability: local SHAP feature attributions for data scientists and natural-language justifications for grid operators |
+| **Tech Stack** | SHAP (`TreeExplainer`), Jinja2 rule templates |
+| **Prerequisites** | **Module 6** complete |
 
 | Input | Output |
-|-------|--------|
-| Trained XGBoost model from Module 6 | SHAP values per feature per prediction |
-| Feature vector for the event being explained | Top-N feature importance ranking for this specific event |
-| Event classification result + confidence score | Human-readable explanation string (e.g., *"Voltage offset +9.5V persistent for 45 min; neighbors S-01, S-02, S-04 nominal; grid disturbance probability < 2%"*) |
-| Rule templates (YAML/JSON): mapping event types to explanation patterns | SHAP force plot data (for frontend visualization) |
-
-**Key deliverables:**
-- `Explainer` class with `.explain(model, features, prediction)` method
-- SHAP summary and force plot generation (saved as JSON for frontend)
-- Rule-based explanation template library (one template per event type)
-- Combined explanation output: `{ shap_values, top_features, rule_explanation, natural_language_summary }`
+|---|---|
+| Trained XGBoost model (Module 6) | SHAP feature attributions per prediction |
+| Classified feature instance | Top-3 contributing physical features |
+| Event category & triggered evidence codes | Natural-language `explanation` string for operator display |
+| Contextual metadata (feeder consensus, meter distance) | Force-plot visualization JSON for React frontend |
 
 ---
 
-## Phase 5: Governance & Audit (Modules 9–10)
+## Phase 5: Governance, Escalation & Audit Trail (Modules 9–10)
 
 ---
 
-### Module 9: Governance & Escalation Engine
+### Module 9: 3-Tier Governance & Escalation Router
 
-**Directory:** `ml/governance/`
+**Directory:** `src/gridsentinel/governance/`
 
 | | Details |
 |---|---|
-| **Purpose** | Route each classified event to the correct action tier based on confidence and risk, with human override capability |
-| **Tech Stack** | Python, YAML for threshold configuration |
-| **Threshold Tiers** | `AUTO_ACTION` (≥95% confidence & low risk), `OPERATOR_APPROVAL` (70–95%), `MANDATORY_ESCALATION` (<70% or critical event type) |
-| **Prerequisites** | **Modules 7 and 8** complete |
+| **Purpose** | Route each classified event into a strict, non-hardcoded 3-tier operational escalation path with human override capabilities |
+| **Tech Stack** | Python, YAML configuration (`config/governance.yaml`) |
+| **Tiers** | `AUTO_ACTION` ($\ge 0.95$ & low risk), `OPERATOR_APPROVAL` ($0.70\text{–}0.95$), `HUMAN_INVESTIGATION` ($< 0.70$ or novel outlier) |
+| **Prerequisites** | **Modules 7 & 8** complete |
 
 | Input | Output |
-|-------|--------|
-| `composite_confidence_score` from Module 7 | Routing decision: `AUTO_ACTION` / `OPERATOR_APPROVAL` / `MANDATORY_ESCALATION` |
-| Event classification from Module 6 | Recommended action string (e.g., "Flag sensor S-03 for calibration inspection") |
-| Explanation from Module 8 | Escalation metadata: assigned priority level, SLA timer |
-| Governance thresholds from `config/governance.yaml` | Decision record ready for audit logging |
-
-**Key deliverables:**
-- `GovernanceEngine` class with `.route(event_result)` method
-- Configurable YAML thresholds (non-hardcoded, per the challenge requirements)
-- Human override interface: `.override(event_id, operator_decision, comment)`
-- Override types: `APPROVE`, `REJECT`, `OVERRIDE_CLASSIFICATION`, `ADD_GROUND_TRUTH`
+|---|---|
+| `event_class` (Module 6) | Assigned `escalation_tier` |
+| `composite_confidence` (Module 7) | `assigned_role` (e.g. *Substation Automated Dispatch Controller*) |
+| `explanation` (Module 8) | Operational routing ticket with SLA countdown |
+| Configurable threshold rules from YAML | Operator override interface methods: `approve()`, `override()`, `reject()` |
 
 ---
 
-### Module 10: Audit Trail & Database
+### Module 10: Immutable Audit Trail & Database
 
-**Directory:** `backend/db/`
+**Directory:** `src/gridsentinel/db/`
 
 | | Details |
 |---|---|
-| **Purpose** | Persist every event, decision, explanation, and human override in an immutable, searchable audit log |
-| **Tech Stack** | PostgreSQL (production) / SQLite (development), SQLAlchemy ORM, Alembic for migrations |
+| **Purpose** | Maintain an append-only, searchable compliance database recording every event, SHAP explanation, confidence breakdown, and operator intervention |
+| **Tech Stack** | SQLite (prototype) / PostgreSQL (production), SQLAlchemy ORM, Alembic |
 | **Prerequisites** | **Module 9** complete |
 
 | Input | Output |
-|-------|--------|
-| Complete event records from the governance engine | Persisted audit rows with: `event_id`, `timestamp`, `sensor_id`, `raw_telemetry_snapshot`, `detection_verdict`, `confidence_score`, `confidence_breakdown`, `shap_explanation`, `rule_explanation`, `model_version`, `triggered_rules`, `recommended_action`, `routing_tier`, `operator_decision`, `operator_comment`, `final_outcome`, `ground_truth_label` |
-| Human override actions | Queryable audit history (filter by date, sensor, event type, confidence range) |
-| Model version metadata | Compliance export (CSV/JSON dump of filtered audit records) |
-
-**Key deliverables:**
-- SQLAlchemy models: `Event`, `Decision`, `AuditEntry`, `OperatorOverride`, `SensorHealth`
-- Alembic migration scripts
-- Repository pattern: `AuditRepository` class with `.log_event()`, `.query()`, `.export()` methods
-- Immutability guarantee: audit entries are append-only, no updates or deletes
+|---|---|
+| Routed governance records from Module 9 | Persisted audit table entries (`audit_id`, `timestamp`, `event_id`, `verdict`, `confidence`, `assigned_role`, `operator_action`, `status`) |
+| Operator overrides and feedback annotations | Exportable compliance reports (`audit_log.csv`) |
+| Model version tracking | Query API for historical audit search and filtering |
 
 ---
 
-## Phase 6: Application Layer (Modules 11–12)
+## 🆕 Phase 6: Multi-Agent RAG & Autonomous Remediation Swarm (Module 11)
+
+> An intelligent multi-agent collaborative swarm that transforms raw anomaly detections into validated, safety-audited operational remediation plans.
+> Designed with an **abstract Orchestrator Interface** supporting either a **LangGraph StateGraph** or a **Native Async FastAPI / Pydantic pipeline**.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant DET as AI Trust Layer (Mod 1-10)
+    participant AG1 as 1. Diagnostic Agent
+    participant AG2 as 2. RAG Knowledge Agent
+    participant VDB as ChromaDB / FAISS
+    participant AG3 as 3. Remediation Agent
+    participant AG4 as 4. Safety Auditor Agent
+    participant OP as Operator / Actuator
+    participant AG5 as 5. Feedback Learning Agent
+
+    DET->>AG1: Ingests (Verdict, Evidence, Residuals, Feeder Consensus)
+    AG1->>AG2: Structured Diagnostic Root-Cause Query
+    AG2->>VDB: Semantic Vector Search (SOPs, Standards, Manuals)
+    VDB-->>AG2: Top-K Contextual Chunks (IEEE 1547, DLMS/COSEM, Playbooks)
+    AG2->>AG3: Augmented Context + Incident Profile
+    AG3->>AG4: Proposed Step-by-Step Remediation Plan
+    alt Safety & Policy Approved
+        AG4->>OP: Dispatch Action (Auto-Execute or Request Approval)
+    else Safety Violation Detected
+        AG4->>AG3: Request Plan Revision with Constraint Feedback
+    end
+    OP->>AG5: Operator Decision, Override & Field Report
+    AG5->>DET: Feedback to Model Retraining Queue & Pattern Registry
+```
 
 ---
 
-### Module 11: FastAPI Backend & WebSocket Streaming
-
-**Directory:** `backend/app/`
+### Module 11a: Agent 1 — Diagnostic & Root-Cause Agent
 
 | | Details |
 |---|---|
-| **Purpose** | Serve REST API endpoints for data/events/decisions/explanations and provide real-time WebSocket streaming of telemetry + events |
-| **Tech Stack** | FastAPI, Uvicorn, WebSockets, Pydantic (request/response models) |
-| **Prerequisites** | **Module 10** complete |
-
-| Input | Output |
-|-------|--------|
-| All ML modules (Modules 1–9) as imported Python packages | REST endpoints: `GET /api/data`, `GET /api/events`, `GET /api/sensors`, `GET /api/decisions`, `GET /api/explanations/{event_id}`, `POST /api/override` |
-| Database from Module 10 | WebSocket endpoint: `ws://host/ws/stream` — live telemetry + anomaly events |
-| CSV data files (replayed line-by-line to simulate live grid) | Pydantic response schemas for all endpoints |
-
-**Key deliverables:**
-- FastAPI app with structured routers (`routers/data.py`, `routers/events.py`, `routers/governance.py`)
-- WebSocket streaming simulator: reads CSV row-by-row at configurable speed, runs full pipeline per row, pushes results to connected clients
-- CORS configuration for React frontend
-- Health check endpoint: `GET /api/health`
-- OpenAPI/Swagger auto-documentation
-
-**REST API Endpoints:**
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/data` | Raw telemetry data (paginated) |
-| `GET` | `/api/events` | Detected events (filterable by type, sensor, date, confidence) |
-| `GET` | `/api/events/{id}` | Single event detail with full explanation |
-| `GET` | `/api/sensors` | All sensor health scores and statuses |
-| `GET` | `/api/sensors/{id}` | Single sensor health history |
-| `GET` | `/api/decisions` | Governance decisions (pending + resolved) |
-| `POST` | `/api/override` | Submit operator override/approval |
-| `GET` | `/api/explanations/{event_id}` | SHAP values + rule explanation for event |
-| `GET` | `/api/audit` | Audit trail query (with filters) |
-| `POST` | `/api/scenarios/{name}/run` | Trigger demo scenario replay |
-| `GET` | `/api/health` | System health check |
-| `WS` | `/ws/stream` | Real-time telemetry + event stream |
+| **Role** | Ingests multi-signal telemetry, SHAP values, and spatial consensus to synthesize an accurate root-cause diagnosis |
+| **Inputs** | `event_class`, `verdict`, `evidence`, `voltage_consistency_residual`, `feeder_sag_ratio`, `sensor_health_index` |
+| **Outputs** | Structured Diagnostic Report (JSON): Root cause probability, affected equipment, failure mode, and search keywords for RAG |
+| **LLM Engine** | LiteLLM client (configurable between Google Gemini, OpenAI, Claude, or local Ollama / Llama-3) |
 
 ---
 
-### Module 12: React Frontend Dashboard
+### Module 11b: Agent 2 — RAG Knowledge Retrieval Agent
+
+| | Details |
+|---|---|
+| **Role** | Retrieves exact utility playbooks, equipment manuals, and grid codes matching the diagnosis from an embedded vector database |
+| **Tech Stack** | Embedded **ChromaDB** or **FAISS** (runs locally in-process without requiring external database containers) |
+| **Knowledge Base** | <ul><li>**Grid Standards:** IEEE 1547 (interconnection), IEC 61850 (substation automation), STEG Low-Voltage Grid Code ($\pm 10\%$)</li><li>**Hardware Specs:** Smart meter maintenance guides, DLMS/COSEM optical calibration manuals, distribution transformer limits</li><li>**Utility SOPs:** Feeder voltage sag recovery playbook, smart meter tampering investigation, communication outage triage</li></ul> |
+| **Outputs** | Contextual document snippets with exact section and page references |
+
+---
+
+### Module 11c: Agent 3 — Remediation & Action Planning Agent
+
+| | Details |
+|---|---|
+| **Role** | Synthesizes a concrete, step-by-step operational remediation plan based on retrieved playbooks and the specific incident parameters |
+| **Inputs** | Diagnostic report (Agent 1) + Retrieved SOP chunks (Agent 2) |
+| **Outputs** | Structured Remediation Plan: <ul><li>Immediate mitigation (e.g. remote soft-reset, virtual sensor substitution)</li><li>Field action (e.g. dispatch technician with calibration tool, inspect line tap)</li><li>Administrative action (e.g. flag billing account, quarantine cryptographic session)</li><li>Estimated resolution time & required operator authority</li></ul> |
+
+---
+
+### Module 11d: Agent 4 — Safety & Policy Auditor Agent
+
+| | Details |
+|---|---|
+| **Role** | Acts as an automated safety guardrail, validating that the proposed remediation complies with safety rules and escalation authority |
+| **Guardrails** | <ul><li>Never issue automated disconnection to critical public facilities or hospitals</li><li>Enforce mandatory human operator approval if confidence $< 95\%$ or estimated cost $> \text{threshold}$</li><li>Verify electrical limits (never command tap adjustment exceeding nominal $\pm 10\%$)</li></ul> |
+| **Outputs** | `AUDIT_PASSED` (dispatches to operator UI / automated actuator) or `AUDIT_REJECTED` (returns with constraint feedback to Agent 3 for plan revision) |
+
+---
+
+### Module 11e: Agent 5 — Feedback & Continuous Learning Agent
+
+| | Details |
+|---|---|
+| **Role** | Captures operator review actions, overrides, and technician field ground truth to close the continuous learning loop |
+| **Inputs** | Human operator decision (`APPROVED`, `REJECTED`, `OVERRIDDEN`), operator comments, field inspection result |
+| **Outputs** | <ul><li>Appends verified record to `audit_log.csv`</li><li>Adds confirmed anomaly signatures to the Noosphere `pattern_registry.json`</li><li>Populates model retraining buffer (`data/retrain_queue/`) for incremental learning</li></ul> |
+
+---
+
+## Phase 7: Application Layer (Modules 12–13)
+
+---
+
+### Module 12: FastAPI Streaming Backend & WebSocket Server
+
+**Directory:** `src/gridsentinel/backend/`
+
+| | Details |
+|---|---|
+| **Purpose** | Host REST API endpoints for telemetry, decisions, and audit logs, and provide real-time WebSocket tick streaming to frontend |
+| **Tech Stack** | FastAPI, Uvicorn, WebSockets, Pydantic v2 |
+| **Prerequisites** | **Modules 10 & 11** complete |
+
+**API Endpoints:**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/telemetry` | Paginated live/historical smart meter telemetry |
+| `GET` | `/api/events` | Filterable list of detected events and classifications |
+| `GET` | `/api/events/{id}` | Single event detail with SHAP values and natural-language explanation |
+| `GET` | `/api/sensors` | Fleet-wide sensor health map (0–100 scores) |
+| `POST` | `/api/remediation/plan` | Trigger Multi-Agent swarm to generate remediation for an event |
+| `POST` | `/api/remediation/execute` | Submit operator sign-off or override on a remediation plan |
+| `GET` | `/api/audit-log` | Searchable historical audit trail (`audit_log.csv`) |
+| `GET` | `/api/noosphere/patterns` | Query shared Noosphere pattern registry |
+| `WS` | `/ws/stream` | Real-time tick-by-tick telemetry and alert stream (30 meters/min) |
+
+---
+
+### Module 13: React Operator Command Center Dashboard
 
 **Directory:** `frontend/`
 
 | | Details |
 |---|---|
-| **Purpose** | Operator-facing UI with 7 views for monitoring, investigation, decision-making, and audit |
-| **Tech Stack** | React 18+, TypeScript, Recharts / Plotly.js, TailwindCSS, Axios, WebSocket client |
-| **Prerequisites** | **Module 11** complete (backend API available) |
+| **Purpose** | Rich operator web application with 7 specialized views for monitoring, investigating, reviewing AI remediation, and auditing |
+| **Tech Stack** | React 18, TypeScript, TailwindCSS, Recharts / Plotly.js, Lucide Icons, Axios |
+| **Prerequisites** | **Module 12** complete |
 
-| Input | Output |
-|-------|--------|
-| All REST endpoints from Module 11 | Interactive web application |
-| WebSocket live stream from Module 11 | Real-time visualizations |
+**The 7 Operator Views:**
 
-**Dashboard Views:**
-
-| # | View | Description |
-|---|------|-------------|
-| 1 | **Command Center** | System overview: total active sensors, current risk score, event counts by type, sensor fleet health summary |
-| 2 | **Live Monitoring** | Real-time streaming voltage/power curves with anomaly bands, actual vs. expected overlays |
-| 3 | **Event Investigation** | Drill-down view: timeline reconstruction, SHAP bar charts, feature contribution waterfall, cross-sensor comparison |
-| 4 | **Sensor Health Map** | Fleet-wide sensor health grid (0–100 scores, color-coded green/yellow/red), historical health trends |
-| 5 | **AI Decision Center** | Queue of pending operator approvals, approve/reject/override actions with comment field |
-| 6 | **Audit Center** | Searchable, filterable historical log of all events, decisions, and overrides |
-| 7 | **Simulation Center** | Scenario replay controls — select Scenario A/B/C, play/pause/speed controls, watch detection in real-time |
+1. **Command Center:** Fleet health overview, real-time risk index, active alerts counter.
+2. **Live Monitoring:** Real-time curves (voltage, power, current) with dynamic line impedance drop bands and actual vs. expected overlays.
+3. **Event Investigation:** Deep-dive drill-down featuring SHAP contribution waterfall charts, timeline reconstruction, and cross-feeder comparisons.
+4. **Sensor Health Map:** Geographic/feeder grid displaying per-meter health scores (color-coded Green/Yellow/Red).
+5. **AI Remediation Center:** Pending decision queue displaying Agent 3's proposed remediation plans, Agent 4's safety audit certification, and One-Click Approve / Override / Reject buttons.
+6. **Audit Center:** Searchable, compliance-ready log of all historical events, assigned roles, and operator actions.
+7. **Simulation Replay Center:** Interactive scenario player (run Scenario A, B, or C with play/pause and speed controls).
 
 ---
 
-## Phase 7: Validation & Deployment (Modules 13–14)
+## Phase 8: Validation, Testing & Deployment (Modules 14–15)
 
 ---
 
-### Module 13: Demo Scenario Validation Suite
+### Module 14: Demo Scenarios A/B/C Validation Suite
 
 **Directory:** `tests/scenarios/`
 
 | | Details |
 |---|---|
-| **Purpose** | End-to-end validation using the 3 pre-packaged competition scenarios to prove the system correctly classifies, explains, and routes each case |
-| **Tech Stack** | Pytest, requests (API testing) |
-| **Prerequisites** | **Module 11** complete (full backend running) |
+| **Purpose** | Comprehensive automated test suite validating the entire pipeline on the 3 competition judging scenarios |
+| **Tech Stack** | Pytest, requests / FastAPI TestClient |
+| **Prerequisites** | **Modules 11 & 12** complete |
 
-| Input | Output |
-|-------|--------|
-| `data/scenarios/scenario_a_genuine_grid_event.csv` | ✅ Verdict: `GENUINE_GRID_EVENT`, Confidence ≥ 95%, Routing: `AUTO_ACTION` |
-| `data/scenarios/scenario_b_sensor_bias.csv` | ✅ Verdict: `DATA_QUALITY_SENSOR_BIAS`, Confidence ≥ 90%, Routing: `OPERATOR_APPROVAL` |
-| `data/scenarios/scenario_c_falsified_data.csv` | ✅ Verdict: `FALSIFIED_DATA_ATTACK`, Confidence ≥ 90%, Routing: `MANDATORY_ESCALATION` |
-
-**Key deliverables:**
-- `test_scenario_a.py`, `test_scenario_b.py`, `test_scenario_c.py`
-- Each test: loads scenario CSV → pushes through full pipeline → asserts correct classification, confidence range, explanation content, and governance routing
-- Automated regression test: `pytest tests/scenarios/ -v`
-- Demo script that runs all 3 scenarios with formatted console output for live presentation
+| Scenario | Injected Condition | Expected AI Verdict | Expected Remediation Action |
+|---|---|---|---|
+| **Scenario A** | Feeder-wide simultaneous $18\text{V}$ sag on all 10 meters | `ACTIONABLE_GRID_EVENT` ($\ge 95\%$ confidence, `AUTO_ACTION`) | Multi-Agent dispatches automatic voltage regulation command |
+| **Scenario B** | Single meter `meter_004` develops persistent $+9.5\text{V}$ bias while peers stay nominal | `DATA_QUALITY_ISSUE` ($> 85\%$ confidence, `OPERATOR_APPROVAL`) | Multi-Agent recommends meter calibration inspection |
+| **Scenario C** | Single meter `meter_001` performs stealth $35\%$ theft / replay | `FALSIFICATION_ATTACK` ($> 85\%$ confidence, `OPERATOR_APPROVAL`) | Multi-Agent recommends field tamper inspection and data quarantine |
 
 ---
 
-### Module 14: Containerization & End-to-End Integration
+### Module 15: Docker Containerization & E2E Integration
 
-**Directory:** Project root
+**Directory:** Root repository
 
 | | Details |
 |---|---|
-| **Purpose** | Package the entire system into Docker containers for reproducible deployment and competition demonstration |
-| **Tech Stack** | Docker, Docker Compose, Nginx (frontend serving) |
-| **Prerequisites** | **Modules 12 and 13** complete |
+| **Purpose** | Package the entire system (Backend, Frontend, Embedded Vector DB, and PostgreSQL) into a reproducible single-command Docker deployment |
+| **Tech Stack** | Docker, Docker Compose, Nginx |
+| **Prerequisites** | **Modules 12, 13, 14** complete |
 
-| Input | Output |
-|-------|--------|
-| Backend application (Module 11) | `Dockerfile.backend` |
-| Frontend application (Module 12) | `Dockerfile.frontend` |
-| Database (Module 10) | `docker-compose.yml` orchestrating: `backend`, `frontend`, `db` (PostgreSQL), `nginx` |
-| All ML models and configs | Single command launch: `docker-compose up` |
-
-**Key deliverables:**
-- `Dockerfile.backend` — Python 3.11, pip install, uvicorn start
-- `Dockerfile.frontend` — Node build stage → Nginx serve stage
-- `docker-compose.yml` — Service orchestration with health checks, volume mounts for data, environment variable configuration
-- `.env.example` — Environment variable template
-- `README.md` — Quick start guide: clone → `docker-compose up` → open `http://localhost:3000`
-- End-to-end smoke test script that verifies all services are healthy
+**Deliverables:**
+- `Dockerfile.backend` (Python 3.11, FastAPI, scikit-learn, ChromaDB, LiteLLM)
+- `Dockerfile.frontend` (Node build $\to$ Nginx static server)
+- `docker-compose.yml` (orchestrating backend, frontend, database, and local volume mounts)
+- `README.md` quick-start guide: `docker-compose up` $\to$ browser opens `http://localhost:3000`
 
 ---
 
-## Phase 8: Noosphere — Multi-Node Federated Learning (Module 15)
+## Phase 9: Noosphere — Federated Pattern Registry (Module 16)
 
 ---
 
-### Module 15: Noosphere — Multi-Node Federated Learning
+### Module 16: Noosphere — Multi-Node Federated Learning & Pattern Registry
 
-**Directory:** `ml/noosphere/`
+**Directory:** `src/gridsentinel/noosphere/`
 
 | | Details |
 |---|---|
-| **Purpose** | Enable multiple independent EnergyMind nodes (microgrids, plants, neighborhoods) to share learned anomaly patterns and model improvements without exposing raw data or customer privacy |
-| **Tech Stack** | FastAPI (inter-node API), JSON/Protobuf (pattern exchange format), Flower or custom federated averaging |
-| **Prerequisites** | **Module 14** complete (single-node system fully working) |
-
-| Input | Output |
-|-------|--------|
-| Local trained model weights from Module 6 | Federated averaged model weights |
-| Local discovered anomaly patterns | Shared Pattern Registry: `PATTERN-XXX` entries (e.g., *"Sensor Bias +5-10% offset, duration 30-60 min"*) |
-| Local calibration insights (sensor health baselines) | Cross-node calibration recommendations |
-| Privacy boundary: **raw telemetry and customer data NEVER leave the node** | Updated local models incorporating fleet-wide intelligence |
-
-**Key deliverables:**
-- `PatternRegistry` — catalog of discovered anomaly signatures with metadata (type, magnitude, duration, frequency)
-- `FederatedAggregator` — receives model weight diffs from peer nodes, computes federated average, distributes updated weights
-- Inter-node API: `POST /noosphere/share-patterns`, `POST /noosphere/share-weights`, `GET /noosphere/registry`
-- Privacy enforcement: middleware that validates no raw telemetry or PII is included in outgoing payloads
-- Simulation of 2–3 nodes exchanging patterns in a local Docker network
+| **Purpose** | Enable decentralized microgrids and distribution districts to share learned disturbance signatures without exposing customer raw telemetry |
+| **Tech Stack** | Python, JSON Schema, FastAPI inter-node endpoints |
+| **Artifact** | `data/generated/pattern_registry.json` |
+| **Privacy Guarantee** | Zero raw waveforms or customer metadata leave the local node; only dimensionless mathematical signatures (e.g. $PF < 0.65$, consensus ratio $> 0.70$) are exchanged |
+| **Prerequisites** | **Module 15** complete |
 
 ---
 
-## Summary: Build Order Checklist
+## Master Build Order & Status Checklist
 
 | Order | Module | Phase | Status |
-|-------|--------|-------|--------|
-| — | Dataset & Simulation | Phase 1 | ✅ DONE |
-| 1 | Statistical Outlier Engine | Phase 2 | ⬜ |
-| 2 | Unsupervised Outlier Engine | Phase 2 | ⬜ |
-| 3 | Bias & Sensor Health Engine | Phase 2 | ⬜ |
-| 4 | Data Integrity / Falsification Engine | Phase 2 | ⬜ |
-| 5 | Feature Engineering Pipeline | Phase 2 | ⬜ |
-| 6 | Evidence Fusion & Event Classifier | Phase 3 | ⬜ |
-| 7 | Confidence Score Calculator | Phase 4 | ⬜ |
-| 8 | Explainability Engine (SHAP + Rules) | Phase 4 | ⬜ |
-| 9 | Governance & Escalation Engine | Phase 5 | ⬜ |
-| 10 | Audit Trail & Database | Phase 5 | ⬜ |
-| 11 | FastAPI Backend & WebSocket Streaming | Phase 6 | ⬜ |
-| 12 | React Frontend Dashboard | Phase 6 | ⬜ |
-| 13 | Demo Scenario Validation Suite | Phase 7 | ⬜ |
-| 14 | Containerization & E2E Integration | Phase 7 | ⬜ |
-| 15 | Noosphere — Multi-Node Federated Learning | Phase 8 | ⬜ |
+|---|---|---|---|
+| — | **GridSentinel Simulator & 13 Scenarios** | Phase 1 | ✅ **COMPLETE** |
+| 1 | **Statistical & Drift Tracking Engine** | Phase 2 | ✅ **COMPLETE** |
+| 2 | Unsupervised Outlier Engine (Isolation Forest) | Phase 2 | 🟡 Baseline in `detector.py` |
+| 3 | Line Impedance & Sensor Health Tracker | Phase 2 | 🟡 Physics in `detector.py` |
+| 4 | Data Integrity & Sequence Replay Engine | Phase 2 | 🟡 Hash check in `detector.py` |
+| 5 | Spatial Consensus & Cohort Feature Pipeline | Phase 2 | 🟡 Logic in `add_features` |
+| 6 | Supervised Multi-Class Classifier (XGBoost) | Phase 3 | ⬜ Dependent on 1–5 |
+| 7 | Multi-Evidence Composite Confidence Engine | Phase 4 | 🟡 Heuristic in `detector.py` |
+| 8 | Dual Explainability Engine (SHAP + Rule Templates) | Phase 4 | 🟡 Rules in `detector.py` |
+| 9 | 3-Tier Governance & Escalation Router | Phase 5 | 🟡 Logic in `detector.py` |
+| 10 | Immutable Audit Trail & Database | Phase 5 | 🟡 `audit_log.csv` generated |
+| 11 | **🆕 Multi-Agent RAG & Remediation Swarm (5 Agents)** | Phase 6 | ⬜ New Phase |
+| 12 | FastAPI Streaming Backend & WebSocket Server | Phase 7 | ⬜ Dependent on 10 & 11 |
+| 13 | React Operator Command Center Dashboard | Phase 7 | ⬜ Dependent on 12 |
+| 14 | Demo Scenarios A/B/C Validation Suite | Phase 8 | 🟡 Smoke tests in `tests/` |
+| 15 | Docker Containerization & E2E Integration | Phase 8 | ⬜ Final Single-Node |
+| 16 | Noosphere Multi-Node Federated Learning | Phase 9 | 🟡 `pattern_registry.json` |
 
 > [!IMPORTANT]
-> **Modules 1–5 can be built in parallel** — they all depend only on Phase 1.
-> **Modules 7 & 8 can be built in parallel** — they both depend only on Module 6.
-> All other modules are strictly sequential.
-
-> [!TIP]
-> Start by building Module 5 (Feature Engineering Pipeline) first among the parallel group, since Module 6 (the classifier) will need its output integrated with the detection engines. This gives the detection engine builders a clear target interface.
+> **Modules 1–5 can be developed in parallel** — they all operate on `normal_training.csv` and `scored_demo.csv`.
+> **Phase 6 (Multi-Agent Swarm)** can be prototyped using mock detection inputs even while the supervised classifier (Module 6) is training.
