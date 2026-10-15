@@ -51,92 +51,48 @@ Multi-node sharing can remain a documented architecture/design if it is not impl
 
 ---
 
-# 3. Recommended System Architecture
+# 3. Recommended System Architecture: The Two-Speed Engine
 
-## Recommended Overall Architecture
-
-For a student competition prototype, the recommended architecture is:
+To resolve the critical conflict between **sub-second grid reaction latency (< 50ms)** and **deep domain intelligence (RAG Playbooks & Standards)**, EnergyMind decouples execution into two concurrent operational lanes:
 
 ```text
-                  ┌──────────────────────┐
-                  │ Energy Data Sources  │
-                  │                      │
-                  │ Smart Meters         │
-                  │ Voltage / Current    │
-                  │ Power Quality        │
-                  │ IoT Sensors          │
-                  │ Simulated Grid Data  │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Data Ingestion Layer │
-                  │                      │
-                  │ Validation            │
-                  │ Timestamping          │
-                  │ Normalization         │
-                  │ Quality Checks        │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Feature Engineering  │
-                  │                      │
-                  │ Temporal Features    │
-                  │ Statistical Features │
-                  │ Correlations         │
-                  │ Residuals            │
-                  └──────────┬───────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-       ┌────────────┐ ┌────────────┐ ┌────────────┐
-       │ Anomaly    │ │ Bias /     │ │ Equipment  │
-       │ Detection  │ │ Sensor     │ │ Fault      │
-       │ Engine     │ │ Health     │ │ Detection  │
-       └─────┬──────┘ └─────┬──────┘ └─────┬──────┘
-             │              │              │
-             └──────────────┼──────────────┘
-                            ▼
-                 ┌──────────────────────┐
-                 │ Event Classification │
-                 │                      │
-                 │ Genuine Grid Event   │
-                 │ Data Quality Problem │
-                 │ Sensor Failure       │
-                 │ Falsified Data       │
-                 └──────────┬───────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │ Confidence Engine    │
-                 └──────────┬───────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │ Explainability Layer │
-                 │                      │
-                 │ SHAP / LIME / Rules  │
-                 │ Decision Explanation │
-                 └──────────┬───────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │ Governance Engine    │
-                 │                      │
-                 │ Auto-action          │
-                 │ Human approval       │
-                 │ Escalation           │
-                 └───────┬───────┬──────┘
-                         │       │
-                   Auto  │       │ Human
-                   Action│       │ Review
-                         ▼       ▼
-                 ┌──────────────────────┐
-                 │ Operator Dashboard   │
-                 │ Alerts / Override    │
-                 │ Audit Log            │
-                 └──────────────────────┘
+                           RAW SMART METER TELEMETRY (30 meters/min)
+                                              │
+                     ┌────────────────────────┴────────────────────────┐
+                     ▼                                                 ▼
+     ⚡ FAST-PATH ENGINE (< 50ms)                      🧠 SLOW-PATH ENGINE (Advisory ~ 2–4s)
+     (Deterministic Safety & Triage)                  (Multi-Agent RAG Remediation Swarm)
+                     │                                                 │
+  ┌──────────────────┴──────────────────┐             ┌────────────────┴────────────────┐
+  │ 1. Feature & Physics Line Drop      │             │ Agent 1: Diagnostic Synthesizer │
+  │    Residuals (ΔV = R·d·I)           │             │ (Root-cause hypothesis query)   │
+  │ 2. Feeder Consensus Ratio           │             │               ↓                 │
+  │ 3. 5-Class Classifier (XGBoost)     │             │ Agent 2: RAG Retriever          │
+  │ 4. Composite Confidence Formula     │             │ (IEEE 1547, IEC 61850, STEG)    │
+  │ 5. SHAP Attributions & Rules        │             │               ↓                 │
+  │ 6. 3-Tier Governance Router         │             │ Agent 3: Remediation Planner    │
+  │    - 5% Spot-Check Anti-Bias        │             │ (Step-by-step mitigation plan)  │
+  │    - Cognitive Friction Confirmation│             │               ↓                 │
+  └──────────────────┬──────────────────┘             │ Agent 4: Safety Policy Auditor  │
+                     │                                │ (Hospital check, tap limits)    │
+                     ▼                                └────────────────┬────────────────┘
+        Emergency Grid Protection /                                    │
+           Instant Tripping Action                                     ▼
+                     │                                    Audited Remediation Plan
+                     └────────────────────────┬────────────────────────┘
+                                              ▼
+                    ┌──────────────────────────────────────────────────┐
+                    │     UNIFIED SINGLE-PANE OPERATOR COCKPIT         │
+                    │  Zone 1: Feeder Topology & Dynamic Drop Curves   │
+                    │  Zone 2: Incident Drill-Down Drawer (SHAP + Plan)│
+                    │  Zone 3: Noosphere Collective Defense Strip      │
+                    └─────────────────────────┬────────────────────────┘
+                                              ▼
+                    ┌──────────────────────────────────────────────────┐
+                    │     AGENT 5: CONTINUOUS FEEDBACK & NOOSPHERE     │
+                    │  - Retraining Buffer Queue                       │
+                    │  - Privacy-Preserving JSON Disturbance Signatures│
+                    └──────────────────────────────────────────────────┘
 ```
 
 ---
@@ -2090,63 +2046,72 @@ Add:
 
 ---
 
-# 20. Minimum Viable Competition Prototype
+# 20. Minimum Viable Competition Prototype (Rectified v2.0)
 
-If time is limited, build this:
+The rectified MVP implements the Two-Speed architecture, automated benchmarking, and business scope:
 
 ```text
-              CSV / Simulator
-                    ↓
-             FastAPI Backend
-                    ↓
-           Feature Engineering
-                    ↓
-       ┌────────────┼────────────┐
-       ↓            ↓            ↓
-   Isolation     Bias/Drift    Rules
-    Forest        Detection     Engine
-       └────────────┼────────────┘
-                    ↓
-             Event Classifier
-                    ↓
-            Confidence Score
-                    ↓
-              SHAP + Rules
-                    ↓
-           Human-AI Governance
-                    ↓
-              React Dashboard
-                    ↓
-               Audit Log
+                                  30-Meter Telemetry Stream
+                                              │
+                      ┌───────────────────────┴───────────────────────┐
+                      ▼                                               ▼
+          ⚡ FAST-PATH ENGINE (< 50ms)                 🧠 SLOW-PATH ASYNC SWARM (2–4s)
+          (Deterministic ML & Triage)                  (Knowledge-Grounded Playbooks)
+                      │                                               │
+         Feature Pipeline (ΔV=R·d·I)                     Agent 1: Diagnostic Synthesizer
+         + Feeder Consensus Ratios                                    ↓
+                      ↓                                  Agent 2: RAG Retriever (ChromaDB)
+         5-Class XGBoost Classifier                      (IEEE 1547 / IEC 61850 / STEG Code)
+                      ↓                                               ↓
+         Multi-Evidence Composite Confidence             Agent 3: Remediation Planner
+         (C = Σ w_i S_i)                                              ↓
+                      ↓                                  Agent 4: Safety & Policy Auditor
+         Dual Explainability (SHAP + Rules)              (Critical facility protections)
+                      ↓                                               │
+         3-Tier Governance Router                                     │
+         (5% Anti-Bias Spot-Checks)                                   │
+                      │                                               │
+                      └───────────────────────┬───────────────────────┘
+                                              ▼
+                    ┌──────────────────────────────────────────────────┐
+                    │     UNIFIED SINGLE-PANE OPERATOR COCKPIT         │
+                    │  Zone 1: Feeder Topology & Dynamic Drop Curves   │
+                    │  Zone 2: Incident Drill-Down Drawer (SHAP + Plan)│
+                    │  Zone 3: Noosphere Collective Defense Strip      │
+                    └─────────────────────────┬────────────────────────┘
+                                              ▼
+                    ┌──────────────────────────────────────────────────┐
+                    │      AUTOMATED BENCHMARK SUITE & NOOSPHERE       │
+                    │  - Module 14: Latency & Precision Scorecard      │
+                    │  - Module 16: Local 2-Node Federated Testbed     │
+                    │  - Section 11: STEG 100k-Meter Business Model    │
+                    └──────────────────────────────────────────────────┘
 ```
 
-And demonstrate **three scenarios**:
+And validates against the **three core competition scenarios**:
 
 ### Scenario A — Genuine Grid Event
-
 ```text
-Multiple sensors change consistently
-→ Real event
-→ High confidence
-→ Appropriate response
+Simultaneous 18V sag across all 10 feeder meters
+→ Feeder consensus ratio = 100%
+→ Fast-Path verdict: ACTIONABLE_GRID_EVENT (< 50ms, C ≥ 0.95)
+→ Immediate automated tap adjustment / voltage regulation command
 ```
 
 ### Scenario B — Sensor Bias
-
 ```text
-One sensor deviates persistently
-→ Bias detected
-→ Data-quality problem
-→ Inspect sensor
+Single meter meter_004 deviates by +9.5V while feeder peers remain nominal
+→ Spatial consensus = 0%
+→ Fast-Path verdict: DATA_QUALITY_ISSUE (< 50ms, C > 0.85)
+→ Dispatches calibration maintenance ticket
 ```
 
-### Scenario C — Falsified Data
-
+### Scenario C — Falsified Electricity Theft
 ```text
-Measurement violates temporal/
-cross-sensor consistency
-→ Data integrity warning
-→ Human review
+Single meter meter_001 scales active power and current down by 35% (0.65x)
+→ Impedance residual normal, but cohort divergence Z = -2.85
+→ Fast-Path verdict: FALSIFICATION_ATTACK (< 50ms, C > 0.85)
+→ Dispatches tamper inspection ticket & quarantines billing data
 ```
 
 This gives the judges a clear demonstration of the central idea rather than showing disconnected AI models.

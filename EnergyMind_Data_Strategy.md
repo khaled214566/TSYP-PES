@@ -1,230 +1,122 @@
-# EnergyMind Tunisia — Data Strategy & Structure
+# EnergyMind Tunisia — Data Strategy & Simulation Architecture (v2.0)
 
-*Decided: October 2026*
-
----
-
-## 1. Data Source Strategy
-
-**Fully Synthetic.**
-All data is generated from scratch by a purpose-built simulator.
-No external dataset download is required. This is acceptable for the competition because the challenge explicitly permits synthetic faults, sensor drift, biased readings, and falsified readings.
+> **IEEE TSYP 14 (PES & IES Chapters) — Data Exploration & Generation Specification**  
+> **Status:** Rectified to align with `src/gridsentinel/simulator.py` and Execution Plan v2.0
 
 ---
 
-## 2. Signal Types
+## 1. Data Source Strategy: Fully Grounded Synthetic Power Grid Simulation
 
-The simulator generates **5 signal types** per sensor per timestamp:
+To satisfy the competition's requirement for reproducible ground truth across all anomaly types, EnergyMind utilizes a purpose-built physics-informed simulation engine (`src/gridsentinel/simulator.py`).
 
-| Signal | Unit | Notes |
+### Key Simulation Principles
+- **No external black-box download required:** Eliminates missing labels and non-standardized schemas.
+- **Physics-Informed Grounding:** Incorporates real electrical distribution line physics:
+  $$\Delta V = R_{\text{cable}} \cdot d \cdot I$$
+  where $R_{\text{cable}} = 0.0004\,\Omega/\text{m}$ and household distances range from $50\text{m}$ to $600\text{m}$ from the distribution transformer.
+- **Spatial Feeder Consensus:** Meters are organized into feeder groups (10 meters/feeder) and building clusters (5 meters/building), enabling cohort comparison and spatial consensus calculation.
+
+---
+
+## 2. Telemetry Channels & Signal Specification
+
+Each simulated smart meter produces **6 physical telemetry channels** at 1-minute intervals:
+
+| Signal Name | Physical Unit | Description & Physics Constraints |
 |---|---|---|
-| `voltage` | V | Primary grid measurement |
-| `current` | A | Derived from power & voltage |
-| `active_power` | kW | Real power consumption |
-| `power_factor` | — | Range 0–1 |
-| `energy_consumption` | kWh | Interval-accumulated smart meter reading |
+| `voltage_v` | Volts (V) | Single-phase RMS voltage (nominal $230\text{V} \pm 10\%$, STEG limits: $207\text{V} \le V \le 253\text{V}$) |
+| `current_a` | Amperes (A) | Line current ($I \approx \frac{P \times 1000}{V \times PF}$) |
+| `active_power_kw` | Kilowatts (kW) | Real instantaneous household power demand |
+| `power_factor` | Dimensionless | Ratio of real to apparent power ($0.70 \le PF \le 1.0$ nominal) |
+| `frequency_hz` | Hertz (Hz) | Grid frequency ($50.0\text{ Hz} \pm 0.2\text{ Hz}$) |
+| `energy_kwh` | Kilowatt-hours (kWh) | Cumulative interval-accumulated billing register ($E_{t} = E_{t-1} + \frac{P \times \Delta t}{60}$) |
 
 ---
 
-## 3. Simulation Parameters
+## 3. Simulation Parameters & Network Topology
 
-| Parameter | Value | Rationale |
+| Parameter | Implemented Value | Engineering Rationale |
 |---|---|---|
-| Sampling interval | **1 minute** | Realistic smart meter interval; manageable dataset size |
-| Number of sensors | **5–10** | Enough to demonstrate cross-sensor consistency checks |
-| Time span | **30 days** | Captures daily + weekly patterns; provides enough anomaly windows |
-| Total rows (approx.) | ~432 000 – 864 000 | 10 sensors × 43 200 min/month |
+| **Sampling Interval** | **1 minute** | Realistic smart meter AMI resolution; captures sharp transient surges |
+| **Monitored Fleet** | **30 Smart Meters** | Arranged across 3 distribution feeders (10 meters/feeder) and 6 buildings |
+| **Feeder Topology** | **Radial Distribution** | Distances span $50\text{m} \to 600\text{m}$ along low-voltage aluminum feeder cables |
+| **Household Profiles** | 3 Distinct Profiles | `small_flat` (baseline $0.8\text{ kW}$), `family_home` ($2.2\text{ kW}$), `high_usage_home` ($4.5\text{ kW}$) |
+| **Temporal Span** | **7 Days (10,080 min)** | Captures diurnal day/night cycles, weekday routines, and weekend consumption surges |
+| **Dataset Volume** | **302,400 rows** | 30 meters $\times$ 10,080 minutes; provides ample volume for statistical calibration |
 
 ---
 
-## 4. Anomaly Types
+## 4. The 13 Injected Anomaly Scenarios Catalogued
 
-The injector supports **all 10 anomaly types**, each mapping to a challenge requirement:
+The simulation engine implements **13 distinct anomaly scenarios** covering all 4 competition failure modes:
 
-| # | Anomaly Type | Category | Challenge Pillar |
-|---|---|---|---|
-| 1 | Sensor bias (persistent offset) | Data quality | Pillar 1 |
-| 2 | Sensor drift (gradual change) | Data quality | Pillar 1 |
-| 3 | Spike / impulse noise | Data quality | Pillar 1 |
-| 4 | Dropout / missing data | Data quality | Pillar 1 |
-| 5 | Constant-value freeze (stuck sensor) | Data integrity | Pillar 1 |
-| 6 | Replay attack (repeated old values) | Falsification | Pillar 1 |
-| 7 | Bias injection (falsified offset) | Falsification | Pillar 1 |
-| 8 | Random corruption | Falsification | Pillar 1 |
-| 9 | Genuine grid event (multi-sensor surge/dip) | Real event | Pillar 1 + 2 |
-| 10 | Equipment fault (abnormal operating pattern) | Real event | Pillar 1 + 2 |
-
-Every injected anomaly must be recorded with full metadata (see Section 6).
+| # | Scenario Name | Category | Real-World Mechanism | Injected Perturbation |
+|---|---|---|---|---|
+| 1 | `consumption_spike` | Demand Event | Natural high-load demand surge | $2.0\times\text{–}3.2\times$ power surge; dynamic voltage sag coupled to wire resistance |
+| 2 | `meter_drift` | Data Quality | Gradual sensor calibration drift | Progressive linear drift ($+0.6\text{ to }+1.2\text{ kW}$) in power channel |
+| 3 | `constant_bias` | Data Quality | Static persistent sensor offset | Persistent active power offset ($+0.8\text{ to }+1.5\text{ kW}$) |
+| 4 | `false_data_injection` | Falsification | Cyber tampering on active power channel | Active power scaled by $0.45\times$ or $1.85\times$ while current remains unchanged |
+| 5 | `replay_like` | Falsification | Reverse replay of historical telemetry | 4-point electrical vector from earlier quiet hours replayed in peak window |
+| 6 | `frozen_meter` | Data Integrity | Sensor firmware/memory lockup | All channels hold static floating-point values ($\sigma^2 = 0$) |
+| 7 | `missing_data` | Comms Loss | Packet loss in wireless mesh AMI | Active power values replaced with `NaN` |
+| 8 | `energy_power_mismatch` | Data Quality | Inconsistent internal accumulator | Accumulation register inconsistency: $P \times \Delta t \neq \Delta E_{\text{kwh}}$ |
+| 9 | `random_corruption` | Data Integrity | Out-of-bounds ADC corruption | Out-of-bounds corruption: $999.0\text{V}$, $-15.0\text{V}$, or impossible $PF = 1.85$ |
+| 10 | `dropout` | Comms Loss | Telemetry collapse / power loss | Complete telemetry collapse: $V = 0.0$, $I = 0.0$, $P = 0.0$ |
+| 11 | `bias_injection` | Electricity Theft | Proportional stealth meter bypass | Coordinated $35\%$ scaling down of both power and current ($0.65\times$) |
+| 12 | `equipment_fault` | Real Event | Inductive appliance breakdown | $2.2\times$ current surge with power factor drop to $0.55$ |
+| 13 | `grid_event` | Real Event | Substation-level feeder disturbance | Simultaneous $18\text{V}$ sag across **all 10 meters** on the feeder |
 
 ---
 
-## 5. Folder Structure
+## 5. Artifact Registry & File Schemas
+
+Generated datasets are organized under `data/generated/`:
 
 ```
 data/
-│
-├── raw/                    # Pure clean baseline (no anomalies)
-│   └── baseline_30d.csv
-│
-├── generated/              # Output of anomaly injector
-│   ├── full_dataset.csv          # Master: all sensors, all time, all signals
-│   └── labels.csv                # Anomaly metadata / ground-truth labels
-│
-├── processed/              # After feature engineering & normalization
-│   └── features.csv
-│
-├── train/
-│   ├── X_train.csv
-│   └── y_train.csv
-│
-├── val/
-│   ├── X_val.csv
-│   └── y_val.csv
-│
-└── test/
-    ├── X_test.csv
-    └── y_test.csv
+├── generated/
+│   ├── normal_training.csv      # Clean baseline telemetry (43,200 to 302,400 rows)
+│   ├── scored_demo.csv          # Telemetry scored by Trust Layer (27 feature & verdict columns)
+│   ├── labels.csv               # Ground-truth event registry with parameter JSON
+│   ├── audit_log.csv            # Append-only governance audit log
+│   ├── pattern_registry.json    # Anonymized Noosphere collective defense registry
+│   ├── summary.csv              # Cross-tabulation of event types by verdict
+│   └── statistical_scores.csv   # Module 1 rolling Z-score & CUSUM drift scores
+└── sample/
+    └── sample_scored_rows.csv   # Lightweight representative sample across all 13 scenarios
 ```
 
----
-
-## 6. File Schemas
-
-### 6.1 `generated/full_dataset.csv` — Master readings file
+### 5.1 `labels.csv` — Ground-Truth Event Registry Schema
 
 | Column | Type | Description |
 |---|---|---|
-| `timestamp` | datetime | ISO 8601, minute-resolution |
-| `sensor_id` | string | e.g. `S-01` … `S-10` |
-| `voltage` | float | Volts |
-| `current` | float | Amperes |
-| `active_power` | float | kW |
-| `power_factor` | float | 0–1 |
-| `energy_consumption` | float | kWh |
-| `is_anomaly` | bool | Whether this row has an injected anomaly |
-| `anomaly_type` | string | One of the 10 types, or `null` |
+| `event_id` | string | Unique event identifier (e.g. `EVT-2026-001`) |
+| `scenario_name` | string | Injected scenario name (one of 13 types) |
+| `category` | string | `demand_event`, `data_quality`, `falsification`, `equipment_fault`, `grid_event` |
+| `target_meter_id` | string | Target smart meter (or `ALL_FEEDER_METERS`) |
+| `start_time` | datetime | UTC start timestamp |
+| `end_time` | datetime | UTC end timestamp |
+| `duration_min` | int | Event duration in minutes |
+| `affected_channels`| string | Semicolon-separated channels (e.g. `voltage_v;current_a`) |
+| `severity` | float | Severity score ($0.0\text{–}1.0$) |
+| `parameters_json` | JSON string | Exact mathematical injection parameters |
 
-### 6.2 `generated/labels.csv` — Anomaly event metadata
+### 5.2 `scored_demo.csv` — Scored Telemetry Schema
 
-| Column | Type | Description |
-|---|---|---|
-| `anomaly_id` | string | Unique ID per injection event |
-| `anomaly_type` | string | e.g. `sensor_bias`, `replay_attack` |
-| `sensor_id` | string | Affected sensor(s) |
-| `start_time` | datetime | Injection start |
-| `end_time` | datetime | Injection end |
-| `severity` | float | 0–1 scale |
-| `affected_signals` | list[str] | Which signals were modified |
-| `injection_parameters` | JSON | Type-specific params (e.g. offset=+8V, duration=12min) |
-| `category` | string | `data_quality` / `falsification` / `real_event` |
-
----
-
-## 7. Train / Val / Test Split
-
-**70 % train / 15 % val / 15 % test — stratified by anomaly type.**
-
-- Stratification ensures every anomaly type appears in all three splits.
-- Split is done **chronologically** within each anomaly class to avoid data leakage.
-- The held-out test set is never touched during model development.
+Contains all raw telemetry columns plus engineered diagnostic fields:
+- `voltage_consistency_residual`: $|V_{\text{measured}} - V_{\text{expected}}|$
+- `feeder_sag_ratio`: Fraction of feeder meters experiencing simultaneous sag
+- `anomaly_score`: Normalized unsupervised decision score $\in [0.0, 1.0]$
+- `verdict`: `TRUSTED`, `ACTIONABLE_GRID_EVENT`, `SUSPICIOUS`, or `UNCERTAIN`
+- `event_class`: 5-class supervised prediction (`NORMAL`, `GENUINE_GRID_EVENT`, `DATA_QUALITY_ISSUE`, `FALSIFICATION_ATTACK`, `EQUIPMENT_FAULT`)
+- `composite_confidence`: Calibrated multi-evidence score $\in [0.0, 1.0]$
+- `escalation_tier`: Assigned governance route (`AUTO_ACTION`, `OPERATOR_APPROVAL`, `HUMAN_INVESTIGATION`)
+- `explanation`: Deterministic natural language justification
 
 ---
 
-## 8. Simulator Implementation
+## 6. Train / Validation / Test Partitioning Strategy
 
-**Python module / class, configurable via YAML.**
-
-```
-simulation/
-│
-├── config/
-│   └── simulation_config.yaml     # All parameters in one place
-│
-├── generators/
-│   ├── baseline_generator.py      # Clean signal with daily/weekly patterns + noise
-│   └── anomaly_injector.py        # Injects any of the 10 anomaly types
-│
-├── scenarios/
-│   ├── scenario_a_grid_event.py   # Genuine multi-sensor grid event
-│   ├── scenario_b_sensor_bias.py  # Single-sensor persistent bias
-│   └── scenario_c_falsified.py    # Temporal/cross-sensor consistency violation
-│
-├── dataset_builder.py             # Orchestrates generation → injection → split → save
-└── README.md
-```
-
-### `simulation_config.yaml` skeleton
-
-```yaml
-simulation:
-  num_sensors: 8
-  sampling_interval_minutes: 1
-  duration_days: 30
-  seed: 42
-
-signals:
-  voltage:
-    nominal: 230        # V
-    noise_std: 1.5
-  current:
-    nominal: 15         # A
-    noise_std: 0.5
-  active_power:
-    nominal: 3.5        # kW
-    noise_std: 0.2
-  power_factor:
-    nominal: 0.92
-    noise_std: 0.01
-  energy_consumption:
-    interval_kwh: 0.058 # kWh per minute
-
-anomaly_injection:
-  target_anomaly_ratio: 0.10    # 10% of timestamps contain an anomaly
-  types:
-    sensor_bias:       { enabled: true, offset_range: [5, 15], duration_min: [5, 30] }
-    sensor_drift:      { enabled: true, rate_per_min: [0.01, 0.05], duration_min: [30, 120] }
-    spike:             { enabled: true, magnitude_range: [3, 10] }
-    dropout:           { enabled: true, duration_min: [1, 20] }
-    constant_freeze:   { enabled: true, duration_min: [5, 60] }
-    replay_attack:     { enabled: true, replay_window_min: [10, 60] }
-    bias_injection:    { enabled: true, offset_range: [8, 20], duration_min: [10, 45] }
-    random_corruption: { enabled: true, corruption_prob: 0.02 }
-    grid_event:        { enabled: true, affected_sensors: all, magnitude: [0.05, 0.2] }
-    equipment_fault:   { enabled: true, fault_types: [overload, harmonic, intermittent] }
-
-split:
-  train: 0.70
-  val:   0.15
-  test:  0.15
-  stratify_by: anomaly_type
-```
-
----
-
-## 9. Demonstration Scenarios
-
-Three pre-built scenarios that feed directly into the judging demo:
-
-| Scenario | What the simulator does | Expected system output |
-|---|---|---|
-| **A — Genuine grid event** | Injects a simultaneous surge across all sensors | Real event · High confidence · Appropriate auto-response |
-| **B — Sensor bias** | Injects a persistent +8 V offset on one sensor only | Data-quality problem · Inspect sensor recommendation |
-| **C — Falsified data** | Injects a replay attack violating temporal consistency | Data integrity warning · Human review required |
-
----
-
-## 10. Dataset Metadata Document
-
-A `data/README.md` must document:
-
-- Generation date & seed
-- Number of sensors, signals, timestamps
-- Sampling interval
-- Anomaly injection rationale
-- Anomaly type distribution (count per type)
-- Train / val / test row counts
-- Column descriptions for every file
-
----
-
-*EnergyMind Tunisia — Data Strategy v0.1 — October 2026*
+- **Chronological Split:** 70% Train (Days 1–5), 15% Validation (Day 6), 15% Held-Out Test (Day 7).
+- **Stratified Anomaly Representation:** All 13 injected anomaly types appear in training, validation, and held-out test windows.
+- **Zero Leakage:** The baseline `normal_training.csv` is strictly isolated for training unsupervised detectors (Isolation Forest) and calibrating nominal EWMA/CUSUM thresholds.

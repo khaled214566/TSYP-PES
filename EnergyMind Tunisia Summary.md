@@ -1,102 +1,83 @@
-# EnergyMind Tunisia: Summary
+# EnergyMind Tunisia: Executive Summary (v2.0)
 
-Oct 13, 2026 · @khaled
+> **IEEE TSYP 14 (PES & IES Chapters) — Technical Challenge Deliverable**  
+> **Status:** Rectified Master Summary aligned with Execution Plan v2.0
 
-## Objective
+---
 
-EnergyMind is an AI **trust layer for energy systems**: it sits between raw energy data and decisions and judges whether an abnormal reading can be believed. It determines whether the reading is a genuine grid or equipment event, a faulty or degraded sensor, a biased reading, or corrupted or falsified data.
+## 1. Core Objective
 
-It must also explain its verdicts, give confidence scores, keep an audit trail, and define when AI may act alone and when a human must approve.
+**EnergyMind Tunisia** is an AI **trust layer for smart energy systems**. It sits directly between raw smart meter telemetry streams and utility control-room decisions, continuously evaluating data credibility before abnormal readings can trigger automated switching or mislead dispatchers.
 
-## Four mandatory pillars
+It solves the fundamental grid dilemma: **Is an abnormal reading a genuine physical grid event, a degraded or drifting sensor, corrupted telemetry, or a cyber-physical falsification attack?**
 
-The challenge requires a working **single-node prototype**; multi-node sharing may stay a documented design.
+---
 
-1. Anomaly and bias detection
-2. Confidence scores and explainability
-3. Human-AI escalation and governance
-4. Shared learning across nodes (the "Noosphere")
+## 2. Four Mandatory Pillars (Challenge Mapping)
 
-## Core architecture
+1. **Anomaly & Bias Detection:** Physics-informed residuals ($\Delta V = R \cdot d \cdot I$) coupled with spatial feeder consensus (`feeder_sag_ratio`) across 13 injected scenarios covering demand events, data quality problems, falsification attacks, and real equipment faults.
+2. **Confidence Scores & Explainability:** Multi-evidence composite confidence calculation ($C = \sum w_i S_i \in [0.0, 1.0]$) rejecting uncalibrated black-box softmax, combined with dual-layer explainability (local SHAP waterfall attributions for engineers + deterministic Jinja2 natural-language templates for operators).
+3. **Human-AI Escalation & Governance:** 3-tier escalation (`AUTO_ACTION`, `OPERATOR_APPROVAL`, `HUMAN_INVESTIGATION`) reinforced with concrete psychological safeguards:
+   - **Anti-Over-Trust (Automation Bias):** 5% random spot-check demotion of `AUTO_ACTION` to mandatory operator review + cognitive friction requiring SHAP acknowledgment before high-impact switching.
+   - **Anti-Under-Trust (Alert Fatigue):** Spatial consensus noise filtering slashing false sirens by $>90\%$ + explicit Physics Verification Proof Cards.
+4. **Shared Learning Across the Noosphere:** Multi-node collective defense sharing privacy-preserving dimensionless mathematical signatures ($PF < 0.65$, consensus ratios) between distribution districts without leaking raw customer load profiles.
 
-Data passes through validation, parallel detectors, evidence fusion and governance before any action is taken. The recommended approach is a **hybrid** of statistical methods, unsupervised and supervised ML, and rules; a single neural network behind a dashboard is explicitly not the goal.
+---
 
-&#91;embedded content: trust-layer pipeline · 3 parallel detectors, 1 governance split\]
+## 3. Two-Speed Engine Architecture
 
-The governance engine routes each verdict to automatic action or human review. Both paths end in the audit log, and human feedback then feeds model learning.
+To eliminate the **3–15 second LLM latency bottleneck** while preserving deep domain intelligence, the architecture decouples into two concurrent operational lanes:
 
-## Key features
+1. **⚡ Fast-Path (Sub-50ms Reaction):**
+   - Real-time tick ingestion for 30 meters.
+   - Modules 1–5 feature pipeline (rolling Z-scores, Isolation Forest, impedance drop residuals, replay hash checks, and feeder sag ratios).
+   - Module 6 supervised 5-class XGBoost classifier.
+   - Module 7 composite confidence engine & Module 8 SHAP/rule explanations.
+   - Immediate emergency triage, voltage regulation, or safety trip dispatch.
 
-The central feature is telling a genuine grid event from a data problem: real events show consistent changes across multiple sensors, while data problems stay isolated to one sensor or break consistency checks.
+2. **🧠 Slow-Path (Asynchronous 2–4s Multi-Agent Swarm):**
+   - Dispatched asynchronously without delaying grid protection.
+   - **Agent 1 (Diagnostic Synthesizer):** Translates physical telemetry into root-cause hypotheses.
+   - **Agent 2 (RAG Retriever):** Queries local ChromaDB vector store containing IEEE 1547, IEC 61850, STEG Low-Voltage Grid Code, and DLMS/COSEM manuals.
+   - **Agent 3 (Remediation Planner):** Formulates step-by-step mitigation playbooks.
+   - **Agent 4 (Safety Policy Auditor):** Validates constraints (e.g. protects critical public hospitals from automated disconnection).
+   - **Agent 5 (Feedback Learner):** Ingests human operator sign-offs into the retraining buffer and Noosphere registry.
 
-| Feature | What it does |
-| --- | --- |
-| Ingestion and validation | Takes voltage, current, power-quality and smart-meter data via CSV or simulated streaming; checks for missing values, duplicates, impossible values and timestamp gaps |
-| Anomaly detection | Rolling z-score, Isolation Forest, autoencoder, One-Class SVM |
-| Bias detection | Finds a persistent offset from expected values through residual analysis against historical baselines, neighboring sensors, physics models or ML predictions |
-| Drift detection | Catches gradual sensor change with EWMA, CUSUM, Page-Hinkley or trend analysis |
-| Equipment fault detection | Kept separate from data problems; supervised (Random Forest, XGBoost) or time-series (LSTM, CNN) models |
-| Falsified data detection | Covers random corruption, constant values, bias injection and replay attacks via temporal and cross-sensor consistency checks |
-| Confidence | A combined, inspectable score of anomaly, bias, model, rule and sensor-health evidence, not just a model probability |
-| Explainability | SHAP and/or LIME plus rule-backed, readable reasoning: what happened, why, and what to do |
-| Audit log | Event ID, timestamp, sensor, detection, confidence, reasons, model version, rules triggered, recommendation, human decision |
-| Human override | Approve, reject, override, comment, or mark a true or false positive |
-| Dashboard | System health, live events, event detail with expected vs actual signal, sensor health map, decision center, audit center |
-| Extras | Real-time monitoring (FastAPI + WebSockets), alerts, sensor health and system risk scores, event timelines, replay mode, scenario comparison |
+---
 
-### Escalation thresholds
+## 4. Key Differentiating Features
 
-Thresholds are configurable, not hard-coded. Critical events always go to a human.
+| Feature | Operational Mechanism |
+|---|---|
+| **Distinguishing Grid Event vs Data Problem** | Radial feeder voltage drop ($\Delta V = R \cdot d \cdot I$) ensures line sag is expected at far meters. When sag is simultaneous across $\ge 70\%$ of feeder meters, it is flagged as a **Genuine Grid Event**. When isolated to one meter, it is flagged as **Data Quality** or **Tampering**. |
+| **Composite Confidence Engine** | Five-factor fusion: $C = 0.35 P(\text{class}) + 0.25 (\text{Consensus}) + 0.20 (\text{Agreement}) + 0.10 (\text{Health}) + 0.10 (1 - \text{Residual})$. |
+| **Unified Single-Pane Cockpit** | Replaced fragmented 7-screen UI with a single responsive React 18 cockpit tailored for a 3-minute pitch: Zone 1 (Live Feeder Map & Impedance Curves), Zone 2 (Incident Drill-Down Drawer with SHAP & RAG Plan), Zone 3 (Noosphere Sync Strip). |
+| **Noosphere Local Testbed** | 2-node networked testbed (`Node-Tunis-Nord` on port 8000 and `Node-Sfax-Sud` on port 8001) demonstrating real-time pattern exchange via JSON Schema. |
 
-| Confidence | Action |
-| --- | --- |
-| 95% or higher | Automatic low-risk action |
-| 70% to 95% | Operator approval |
-| Below 70% | Human investigation |
+---
 
-## Data and learning
+## 5. Demonstration Scenarios (Validation Suite)
 
-- **Synthetic anomaly generator:** injects bias, drift, noise, spikes, dropouts, falsification and faults into clean baselines, with metadata (type, sensor, times, severity, parameters) so results can be evaluated properly.
-- **Evaluation:** precision, recall, F1, ROC/PR-AUC, false-alarm rate, detection delay and latency.
-- **Feedback learning:** human verdicts feed retraining.
-- **Multi-node and privacy design:** raw data and customer information stay local. Only anomaly patterns, model updates, calibration insights and aggregate statistics are shared, via federated learning or a pattern registry.
+| Scenario | Injected Condition | Expected AI Verdict & Speed | Prescribed Action |
+|---|---|---|---|
+| **Scenario A: Genuine Grid Event** | Simultaneous $18\text{V}$ sag across all 10 meters on Feeder 1 | `ACTIONABLE_GRID_EVENT` (Fast-Path: $<50\text{ ms}$, $C \ge 0.95$) | Immediate automated voltage regulation command |
+| **Scenario B: Sensor Bias** | Single meter `meter_004` exhibits persistent $+9.5\text{V}$ bias while peers stay nominal | `DATA_QUALITY_ISSUE` (Fast-Path: $<50\text{ ms}$, $C > 0.85$) | Dispatches calibration inspection ticket |
+| **Scenario C: Falsified Theft Attack** | Single meter `meter_001` performs stealth $35\%$ theft ($P \times 0.65$, $I \times 0.65$) | `FALSIFICATION_ATTACK` (Fast-Path: $<50\text{ ms}$, $C > 0.85$) | Dispatches tamper inspection ticket & quarantines data |
 
-## Technology stack
+---
 
-Python, scikit-learn, XGBoost/LightGBM, PyTorch (optional), SHAP, FastAPI, WebSockets, PostgreSQL (TimescaleDB optional), React with Plotly/Recharts, Docker and Pytest. Redis, MQTT and Kafka should be added only if a real requirement needs them.
+## 6. Business Scope & STEG Economic Model (1 Bonus Point)
 
-## Priorities
+- **Pilot Deployment Target:** 100,000 smart meters in District Tunis-Nord.
+- **3-Year Total Investment:** **$229,000** ($145k Year 1 CapEx/setup + $42k/yr OpEx for edge gateways, self-hosted LLM inference, SCADA integration, and MLOps).
+- **Economic Return:** Recovers an estimated **15% of non-technical distribution losses (theft)**, saving $\approx \$210,000\text{/year}$.
+- **Payback Period:** Achieved in **13.1 months** ($< 14$ months), yielding a net 3-year savings of **$401,000**.
 
-| Level | Items |
-| --- | --- |
-| Must have | All detection types, event-vs-data distinction, confidence, explanations, audit log, human escalation and override interface, working single-node prototype, evaluation metrics, documented anomaly generation |
-| Strongly recommended | Live dashboard, sensor health score, SHAP, hybrid rules + ML, feedback loop, Docker |
-| Optional | Federated learning, multi-node simulation, Transformers, LLM explanations, automated retraining |
+---
 
-## Development order
+## 7. 8-Week Agile Roadmap (Oct 15 to Dec 12)
 
-Build in phases rather than all at once:
-
-1. Dataset and anomaly injection
-2. Detection
-3. Classification
-4. Trust layer
-5. Governance
-6. Dashboard
-7. Advanced features
-
-## Minimum viable prototype
-
-The minimum build runs CSV or simulator input through FastAPI and feature engineering into Isolation Forest, bias/drift detection and rules, then an event classifier, confidence score, SHAP + rules explanation, governance, a React dashboard and an audit log.
-
-It should demonstrate three scenarios:
-
-| Scenario | What happens | Outcome |
-| --- | --- | --- |
-| A: Genuine grid event | Multiple sensors change consistently | Real event, high confidence, appropriate response |
-| B: Sensor bias | One sensor deviates persistently | Data-quality problem; inspect sensor |
-| C: Falsified data | Data violates temporal and cross-sensor consistency | Integrity warning; human review |
-
-## Guiding principle
-
-EnergyMind is not just an anomaly detector: it evaluates data reliability before that data can influence automated decisions. Every feature should serve one of **Trust, Detect, Classify, Explain, Confidence, Govern, Learn** or **Audit**.
+- **Sprint 1 (Weeks 1–2):** Feature extraction, line drop physics, and Module 1–5 evidence engines.
+- **Sprint 2 (Weeks 3–4):** XGBoost 5-class classifier, composite confidence, SHAP explainability, and Fast/Slow Multi-Agent Swarm.
+- **Sprint 3 (Weeks 5–6):** FastAPI streaming backend, Single-Pane Operator Cockpit, and anti-bias friction UI.
+- **Sprint 4 (Weeks 7–8):** Module 14 automated benchmark suite, 2-node Docker demo, and 3-minute pitch rehearsal.

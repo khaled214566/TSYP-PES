@@ -1,5 +1,5 @@
-# EnergyMind Tunisia — Project Proposal Plan
-### TSYP / IEEE Challenge Submission
+# EnergyMind Tunisia — Project Proposal Plan (v2.0)
+### IEEE TSYP 14 Challenge Submission — PES & IES Chapters
 
 ---
 
@@ -8,198 +8,176 @@
 1. [Executive Summary](#1-executive-summary)
 2. [Problem Statement](#2-problem-statement)
 3. [Project Objectives & Scope](#3-project-objectives--scope)
-4. [System Architecture Overview](#4-system-architecture-overview)
+4. [System Architecture Overview: The Two-Speed Engine](#4-system-architecture-overview-the-two-speed-engine)
 5. [Four Mandatory Pillars](#5-four-mandatory-pillars)
 6. [Technology Stack](#6-technology-stack)
-7. [Development Phases & Timeline](#7-development-phases--timeline)
-8. [Dataset & Simulation Strategy](#8-dataset--simulation-strategy)
-9. [Evaluation Metrics](#9-evaluation-metrics)
-10. [Human-AI Governance Model](#10-human-ai-governance-model)
-11. [Multi-Node / Noosphere Design](#11-multi-node--noosphere-design)
-12. [Team Roles & Responsibilities](#12-team-roles--responsibilities)
-13. [Risk & Mitigation](#13-risk--mitigation)
-14. [References / Bibliography](#14-references--bibliography)
+7. [Development Phases & 8-Week Agile Roadmap](#7-development-phases--8-week-agile-roadmap)
+8. [Dataset & 13-Scenario Simulation Strategy](#8-dataset--13-scenario-simulation-strategy)
+9. [Evaluation Metrics & Automated Benchmarking Suite](#9-evaluation-metrics--automated-benchmarking-suite)
+10. [Human-AI Governance Model: Addressing Over-Trust & Under-Trust](#10-human-ai-governance-model-addressing-over-trust--under-trust)
+11. [Multi-Node / Noosphere Federated Collective Defense](#11-multi-node--noosphere-federated-collective-defense)
+12. [Single-Pane Operator Cockpit Design](#12-single-pane-operator-cockpit-design)
+13. [Business Scope & Techno-Economic Model (STEG Context)](#13-business-scope--techno-economic-model-steg-context)
+14. [Team Workload & Pair-Programming Execution Flow](#14-team-workload--pair-programming-execution-flow)
+15. [Risk Analysis & Mitigation Matrix](#15-risk-analysis--mitigation-matrix)
+16. [References & Standards](#16-references--standards)
 
 ---
 
 ## 1. Executive Summary
 
-> **One-page pitch for the judges.**
-
-A concise, high-impact overview of EnergyMind Tunisia: what it is, the core problem it solves, why a *trust layer* approach is novel and necessary, and the key differentiator (hybrid AI + explainability + governance in a single pipeline). Ends with a statement of readiness and team commitment.
+A concise, high-impact overview of EnergyMind Tunisia: an AI-driven trust layer for power distribution grids that evaluates telemetry credibility before automated switching can act or operators are alerted. Highlights the core technical breakthroughs:
+- Physics-informed residuals coupling line drop ($\Delta V = R \cdot d \cdot I$) with spatial consensus (`feeder_sag_ratio`) to decisively distinguish genuine grid events from sensor degradation or falsification.
+- Two-Speed architecture eliminating LLM latency traps by separating deterministic sub-50ms Fast-Path triage from asynchronous 2–4s Slow-Path RAG remediation planning.
+- Rigorous human-trust governance addressing both automation complacency (over-trust) and alarm fatigue (under-trust).
 
 ---
 
 ## 2. Problem Statement
 
-> **Why does this problem matter?**
-
-Describes the gap between raw energy sensor data and trustworthy automated decisions: sensors can drift, be biased, be falsified, or fail — yet current systems treat all data as equally reliable. Explains the real-world consequences (wrong automated actions, missed faults, eroded operator trust) and frames the challenge's four pillars as a direct response to this gap.
+Details the vulnerability of modern smart grid automation to untrusted sensor inputs:
+- Data quality problems (calibration drift, frozen registers, packet drops) trigger false operator dispatches.
+- Stealth cyber-physical falsification (e.g. coordinated power/current scaling for electricity theft) evades simple threshold checks.
+- Lack of explainability in black-box neural networks erodes operator trust.
+- Conflation of real grid sags with sensor faults creates catastrophic delays in grid voltage regulation.
 
 ---
 
 ## 3. Project Objectives & Scope
 
-> **What will EnergyMind do, and what is out of scope?**
-
-Lists the concrete, measurable goals of the project aligned with the four mandatory pillars. Defines the boundary of the single-node prototype (in scope) vs. full multi-node deployment (designed but not implemented). States the three demonstration scenarios (genuine grid event, sensor bias, falsified data) as the acceptance criteria.
+- **In Scope (Prototype Deliverables):**
+  - Working single-node prototype monitoring 30 smart meters on a radial distribution feeder ($50\text{m} \to 600\text{m}$).
+  - 13 injected anomaly scenarios catalogued with ground-truth labels.
+  - Multi-evidence composite confidence engine ($C \in [0.0, 1.0]$) and dual-layer explainability (SHAP + Jinja2 templates).
+  - Asynchronous Multi-Agent RAG Remediation Swarm grounded in IEEE 1547, IEC 61850, and STEG grid code.
+  - Live 2-node networked Noosphere testbed across local ports exchanging dimensionless disturbance signatures.
+  - Single-Pane Operator Cockpit (React 18 + Tailwind) optimized for a 3-minute pitch.
+- **Out of Scope:** Direct live physical connection to STEG high-voltage substations or non-simulated utility billing networks.
 
 ---
 
-## 4. System Architecture Overview
+## 4. System Architecture Overview: The Two-Speed Engine
 
-> **How does the system fit together end-to-end?**
-
-Presents the full pipeline: Data Ingestion → Validation → Feature Engineering → Parallel Detectors (Anomaly / Bias-Drift / Fault) → Evidence Fusion → Event Classification → Confidence Engine → Explainability Layer → Governance Engine → Dashboard & Audit Log. Includes a high-level block diagram and explains the data flow in plain language.
-
-### 4.1 Data Ingestion Layer
-### 4.2 Feature Engineering Layer
-### 4.3 Detection Engine (three parallel tracks)
-### 4.4 Evidence Fusion & Event Classification
-### 4.5 Confidence & Explainability Layer
-### 4.6 Governance Engine
-### 4.7 Operator Dashboard & Audit Log
+Presents the end-to-end data pipeline and block diagram:
+1. **⚡ Fast-Path (Sub-50ms):** Telemetry Streaming $\to$ Modules 1–5 Physics Residuals & Spatial Consensus $\to$ Module 6 5-Class Classifier $\to$ Module 7 Composite Confidence $\to$ Module 8 SHAP $\to$ Module 9 3-Tier Governance $\to$ Emergency Trip / Rapid Regulation.
+2. **🧠 Slow-Path (Asynchronous 2–4s):** Module 10 Audit Log Event Trigger $\to$ Agent 1 Diagnostic Synthesizer $\to$ Agent 2 RAG Retrieval (ChromaDB) $\to$ Agent 3 Remediation Planner $\to$ Agent 4 Safety Auditor $\to$ Cockpit Advisory Drawer $\to$ Agent 5 Feedback Learner $\to$ Module 16 Noosphere Registry.
 
 ---
 
 ## 5. Four Mandatory Pillars
 
-> **Deep-dive into each challenge requirement.**
-
-Each sub-section explains the design choice, the algorithm(s) selected, and how it contributes to the overall trust layer.
-
 ### 5.1 Pillar 1 — Anomaly & Bias Detection
-Covers the hybrid statistical + unsupervised ML approach: rolling z-score, Isolation Forest, EWMA/CUSUM for drift, and residual analysis for persistent sensor bias. Explains why a single model is insufficient.
+Detailed breakdown of the 5 parallel evidence engines:
+- Module 1: Rolling Z-score, EWMA, CUSUM, Page-Hinkley drift tracking.
+- Module 2: Unsupervised Isolation Forest (160 estimators, contamination $\approx 0.03$).
+- Module 3: Line Impedance drop residuals ($|V_{\text{measured}} - V_{\text{expected}}|$) and sensor health indices ($0\text{–}100$).
+- Module 4: Zero-variance run length, physical boundaries, and replay hash checks.
+- Module 5: Feeder sag consensus ratio (`feeder_sag_ratio`) and household cohort ratios.
 
 ### 5.2 Pillar 2 — Confidence Scores & Explainability
-Describes the composite confidence score (combining anomaly score, bias score, model probability, rule evidence, and sensor health) and the dual explainability engine (SHAP for tree models + rule-backed human-readable reasoning).
+- Composite confidence formula: $C = 0.35 P(\text{class}) + 0.25 (\text{Consensus}) + 0.20 (\text{Agreement}) + 0.10 (\text{Health}) + 0.10 (1 - \text{Residual})$.
+- Dual explainability: Local SHAP `TreeExplainer` feature attributions for engineers + deterministic Jinja2 natural language templates for grid operators.
 
 ### 5.3 Pillar 3 — Human-AI Escalation & Governance
-Outlines the three-tier confidence thresholds (≥95 % auto-action / 70–95 % operator approval / <70 % human investigation) and the operator override interface (approve, reject, comment, mark FP/TP).
+- 3 operational tiers: `AUTO_ACTION` ($C \ge 0.95$), `OPERATOR_APPROVAL` ($0.70 \le C < 0.95$), `HUMAN_INVESTIGATION` ($C < 0.70$).
+- Concrete safeguards fighting automation complacency and alert fatigue.
 
 ### 5.4 Pillar 4 — Shared Learning Across the Noosphere
-Explains the federated/knowledge-sharing design: only anomaly patterns, model updates, and aggregate statistics cross node boundaries; raw data remains local. Describes how human feedback drives continuous model improvement.
+- Privacy-preserving collective defense: only dimensionless mathematical descriptors ($PF < 0.65$, consensus ratios) leave the node. Raw load profiles stay local.
+- Working multi-node local testbed demonstrating cross-node signature exchange.
 
 ---
 
 ## 6. Technology Stack
 
-> **What we build with and why.**
-
-Presents the chosen stack in a layered table (Language / ML / Deep Learning / Explainability / Backend / Real-time / Database / Frontend / Charts / Simulation / Containerization / Testing) and provides a one-sentence justification for each major choice. Highlights why certain technologies (Kafka, Redis, MQTT) were intentionally deferred to avoid over-engineering.
-
----
-
-## 7. Development Phases & Timeline
-
-> **How we go from zero to a working prototype.**
-
-Breaks the project into seven sequential phases with estimated duration and deliverables for each.
-
-### Phase 1 — Dataset & Anomaly Injection
-Build synthetic baselines and the anomaly generator (bias, drift, spikes, dropouts, falsification, faults) with full metadata for evaluation.
-
-### Phase 2 — Detection Engine
-Implement all detector tracks: statistical baseline, Isolation Forest, bias/drift detectors, data-integrity checks.
-
-### Phase 3 — Event Classification
-Train and validate the event classifier (genuine grid event vs. data problem vs. sensor failure vs. falsification) using XGBoost / Random Forest.
-
-### Phase 4 — Trust Layer (Confidence + Explainability)
-Build the composite confidence score and the SHAP + rule-backed explanation engine; wire into the audit log.
-
-### Phase 5 — Governance Engine
-Implement threshold routing (auto / approval / escalation), human override interface, and feedback collection.
-
-### Phase 6 — Operator Dashboard
-Develop the React frontend: Command Center, Live Monitoring, Event Investigation, Sensor Health, AI Decision Center, Audit Center, and Simulation Center.
-
-### Phase 7 — Integration, Testing & Demo Scenarios
-End-to-end integration, Dockerization, Pytest coverage, and preparation of the three judging scenarios.
+- **Core & ML:** Python 3.11, NumPy, SciPy, pandas, scikit-learn, XGBoost, SHAP.
+- **RAG & Agents:** LiteLLM (Gemini / OpenAI / local Ollama Llama-3), ChromaDB (embedded in-memory vector store).
+- **Backend & Streaming:** FastAPI, Uvicorn, WebSockets, Pydantic v2, SQLAlchemy, SQLite/PostgreSQL.
+- **Frontend & Cockpit:** React 18, TypeScript, TailwindCSS, Recharts, Plotly.js, Lucide Icons.
+- **Validation & DevOps:** Pytest, Docker, Docker Compose, Nginx.
 
 ---
 
-## 8. Dataset & Simulation Strategy
+## 7. Development Phases & 8-Week Agile Roadmap
 
-> **How we generate and manage labeled data.**
-
-Explains the synthetic anomaly generator design (clean baseline → injection → labeled dataset with anomaly metadata). Describes the dataset directory structure (`/raw`, `/clean`, `/anomalies`, `/processed`, `/train`, `/val`, `/test`) and the metadata schema (source, sampling rate, features, units, anomaly generation parameters, train/test split). Addresses why synthetic data is acceptable and how it is evaluated.
-
----
-
-## 9. Evaluation Metrics
-
-> **How we prove the system works.**
-
-Lists the metrics used across four domains:
-- **Classification**: Precision, Recall, F1-score, ROC-AUC, PR-AUC
-- **Detection**: Detection rate, False alarm rate, Detection delay
-- **Explainability**: Human-rated explanation quality, rule coverage
-- **Operational**: Inference latency, throughput, CPU/RAM usage
-
-Describes how the three demonstration scenarios act as qualitative acceptance tests for the judges.
+Structured around 4 two-week agile sprints with full-team pair programming in strict dependency order:
+- **Sprint 1 (Weeks 1–2):** ML Trust Core & Evidence Engines (Modules 2, 3, 4, 5).
+- **Sprint 2 (Weeks 3–4):** Classifier, Composite Confidence, SHAP & Asynchronous RAG Swarm (Modules 6, 7, 8, 11).
+- **Sprint 3 (Weeks 5–6):** FastAPI Streaming Backend & Single-Pane Cockpit UI (Modules 9, 10, 12, 13).
+- **Sprint 4 (Weeks 7–8):** Automated Evaluation Suite, 2-Node Docker Demo & Pitch Rehearsal (Modules 14, 15, 16, Business Model).
 
 ---
 
-## 10. Human-AI Governance Model
+## 8. Dataset & 13-Scenario Simulation Strategy
 
-> **Defining the boundary between AI autonomy and human authority.**
-
-Details the configurable threshold system (not hard-coded), the governance rule engine (YAML-based configuration), the three escalation paths, and the complete audit log schema (Event ID, timestamp, sensor, detection, confidence, reasons, model version, rules triggered, recommendation, human decision, final outcome). Emphasizes the principle: *critical events always go to a human*.
-
----
-
-## 11. Multi-Node / Noosphere Design
-
-> **Architecture for cross-node learning (documented, not fully implemented in prototype).**
-
-Describes the three sharing options (centralized aggregation, federated learning, knowledge pattern registry) and the privacy boundary: raw measurements and customer data never leave the node. Presents the Pattern Registry schema (pattern ID, type, signature, observed count, confidence, recommendation). Marks clearly what is implemented vs. what is a documented design.
+- Generates 30 households along a 600m radial feeder at 1-minute intervals.
+- Ground truth coverage across all 4 challenge categories:
+  - Demand Events: `consumption_spike`
+  - Data Quality: `meter_drift`, `constant_bias`, `energy_power_mismatch`
+  - Data Integrity & Comms: `frozen_meter`, `random_corruption`, `missing_data`, `dropout`
+  - Falsification & Cyber-Physical Attacks: `false_data_injection`, `replay_like`, `bias_injection` (stealth theft)
+  - Real Electrical Events: `equipment_fault`, `grid_event` (feeder-wide 18V sag)
 
 ---
 
-## 12. Team Roles & Responsibilities
+## 9. Evaluation Metrics & Automated Benchmarking Suite
 
-> **Who does what on a 4–6 person team.**
-
-Maps each team member to a primary role and secondary contributions:
-
-| Role | Responsibilities |
-|---|---|
-| ML / Data Lead | Anomaly detection, bias/drift models, model evaluation, SHAP |
-| Backend Lead | FastAPI, WebSockets, governance engine, audit log, database |
-| Frontend Lead | React dashboard, real-time charts, decision center UI |
-| Data / Simulation Engineer | Synthetic generator, dataset pipeline, feature engineering |
-| DevOps / Integration | Docker, CI, end-to-end wiring, test coverage |
-| *(if 6th member)* Research / Docs | Architecture docs, Noosphere design, proposal writing |
+Detailed specifications for Module 14:
+- **Detection Precision & Recall:** Precision $\ge 96.5\%$, Recall $\ge 98.0\%$, False Positive Rate $< 1.2\%$.
+- **Latency Benchmarks:** Fast-Path Latency $< 50\text{ ms}$ (p99); Slow-Path Latency $< 3.5\text{ s}$ (p95).
+- **Explanation Quality:** SHAP Faithfulness $> 92\%$ alignment with injected physics; Readability Flesch-Kincaid $\le 9$.
 
 ---
 
-## 13. Risk & Mitigation
+## 10. Human-AI Governance Model: Addressing Over-Trust & Under-Trust
 
-> **What could go wrong and how we handle it.**
-
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Insufficient labeled data | High | High | Synthetic generator is the primary data source |
-| Model over-fits synthetic anomalies | Medium | High | Hold-out test set; diverse injection parameters |
-| Real-time latency too high | Medium | Medium | Profile early; optimize feature engineering |
-| Dashboard not ready for demo | Medium | High | Replay/simulation mode as fallback |
-| Scope creep (too many optional features) | High | Medium | Strict "Must Have" lock; defer to Phase 7 |
-| Team member unavailability | Low | High | Cross-training; shared documentation |
+- **Over-Trust Mitigation:**
+  - *Spot-Check Audit Policy:* Configurable daemon randomly demotes **5% of `AUTO_ACTION` decisions** to `OPERATOR_APPROVAL`.
+  - *Cognitive Friction:* High-impact actions require clicking and acknowledging the primary SHAP driver before execution.
+- **Under-Trust Mitigation:**
+  - *Consensus Noise-Gate:* Uncorroborated low-severity blips clustered into maintenance batches, reducing sirens by $>90\%$.
+  - *Physics Proof Cards:* Visual representation of voltage consistency residual verifying that sensor failure was ruled out.
 
 ---
 
-## 14. References / Bibliography
+## 11. Multi-Node / Noosphere Federated Collective Defense
 
-> **Sources, datasets, tools, and standards cited in the proposal.**
-
-Includes references to:
-- IEEE challenge specification documents
-- Key papers: Isolation Forest (Liu et al.), SHAP (Lundberg & Lee), CUSUM, Federated Learning (McMahan et al.)
-- Open datasets used for baseline generation (e.g., EPFL Smart Meter, UKPN, synthetic utilities)
-- Technology documentation: FastAPI, scikit-learn, XGBoost, React, Docker
-- Relevant energy-sector standards (IEC 61850, IEC 62351 if applicable)
+- Mathematical pattern schema (`pattern_registry.json`).
+- Live 2-node simulation (`Node-Tunis-Nord` and `Node-Sfax-Sud`).
+- Federated consensus threshold ($\ge 2$ nodes) to promote local patterns to global defense rules.
 
 ---
 
-*Document version 0.1 — EnergyMind Tunisia Team — October 2026*
+## 12. Single-Pane Operator Cockpit Design
+
+Unified React interface designed for a 3-minute pitch:
+- **Zone 1:** Live Feeder Topology & Impedance Drop Curves ($V_{\text{measured}}$ vs $V_{\text{expected}}$).
+- **Zone 2:** Incident Drill-Down Drawer with SHAP Waterfall and RAG Remediation Plan.
+- **Zone 3:** Noosphere Collective Defense Strip.
+
+---
+
+## 13. Business Scope & Techno-Economic Model (STEG Context) — 1 Bonus Point
+
+- **Target Pilot:** 100,000 smart meters in District Tunis-Nord.
+- **Financial Projections:** 3-Year Total Cost of $229,000 ($145k CapEx Year 1 + $42k/yr OpEx).
+- **Theft Recovery Payback:** Recovers 15% of distribution theft losses ($\approx \$210,000\text{/year}$), achieving full payback in **13.1 months** (<14 mo.) and net savings of **$401,000** over 3 years.
+
+---
+
+## 14. Team Workload & Pair-Programming Execution Flow
+
+- 5-person agile team working in sequential dependency pairs rather than isolated silos.
+- Continuous integration and automated regression testing on every module.
+
+---
+
+## 15. Risk Analysis & Mitigation Matrix
+
+Addresses data leakage, real-time latency traps, multi-agent hallucination risks, demo timing limits, and utility adoption hurdles.
+
+---
+
+## 16. References & Standards
+
+- IEEE 1547-2018, IEC 61850, IEC 62351, STEG Low-Voltage Distribution Code, DLMS/COSEM Green Book.
